@@ -1,0 +1,12 @@
+ig:
+  identifier: ${IG_DEMO_IDENTIFIER}
+  password: ${IG_DEMO_PASSWORD}
+  apiKey: ${IG_DEMO_APIKEY}
+  baseUrl: https://demo-api.ig.com/gateway/deal
+  epics:
+    - IX.D.DAX.IFMM.IP
+    - IX.D.NASDAQ.IFE.IP
+
+logging:
+  level:
+    root: info

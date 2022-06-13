@@ -1,0 +1,14 @@
+package rules.tradeManagement;
+
+import org.trading.model.*;
+import org.trading.event.*;
+import org.trading.ChannelIds;
+
+dialect  "mvel"
+
+rule "On each bid event trigger"
+    when
+      $b: Bid() from entry-point "BID"
+    then
+      channels[ChannelIds.OPEN_WORKING_ORDER].send("open");
+end

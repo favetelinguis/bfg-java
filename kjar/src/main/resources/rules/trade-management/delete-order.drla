@@ -1,0 +1,37 @@
+package rules.tradeManagement;
+
+import org.trading.model.*;
+import org.trading.event.*;
+
+dialect  "mvel"
+
+global String asa
+
+rule "Delete Buy Order If Sell Is Filled"
+    when
+      PositionUpdate($e: epic, direction: "SELL", status: "SUCCESS") // TODO how to only eveluate when new events come in
+      exists(Order(epic == $e, $id: dealId, direction == "BUY"))
+    then
+      // Do rest call to delete the short
+end
+rule "Delete Sell Order If Buy Is Filled"
+    when
+      PositionUpdate($e: epic, direction: "BUY", status: "SUCCESS")
+      Order(epic == $e, $id: dealId, direction == "SELL")
+    then
+      // Do rest call to delete the short
+end
+rule "Retract Sell Order On Confirmation"
+    when
+      TradeConfirmation($e: epic, type: "DELETE", direction: "SELL", status: "SUCCESS")
+      $sellOrder: Order(epic == $e, direction == "SELL")
+    then
+      delete($sellOrder);
+end
+rule "Retract Buy Order On Confirmation"
+    when
+      TradeConfirmation($e: epic, direction: "BUY", status: "SUCCESS")
+      $buyOrder: Order(epic == $e, direction == "BUY")
+    then
+      delete($buyOrder);
+end

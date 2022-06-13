@@ -1,0 +1,13 @@
+package rules.PositionSizing;
+
+import org.trading.model.*;
+import org.trading.event.*
+
+dialect  "mvel"
+
+rule "Placeholder"
+    when
+    then
+      // TODO do rest call to open
+      // When we get the TradeConfirmation event create BuyOrder in session
+end

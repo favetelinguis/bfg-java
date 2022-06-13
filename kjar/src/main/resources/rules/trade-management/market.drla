@@ -1,0 +1,17 @@
+package rules.tradeManagement;
+
+import org.trading.model.*;
+import org.trading.event.*;
+import org.trading.MarketData;
+
+dialect  "mvel"
+
+global MarketData marketData;
+
+rule "Buy High Opening Range"
+    when
+       from marketData.getMarketData("epic")
+    then
+      // TODO do rest call to open
+      // When we get the TradeConfirmation event create BuyOrder in session
+end

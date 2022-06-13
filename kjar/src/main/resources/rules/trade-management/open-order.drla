@@ -1,0 +1,68 @@
+package rules.tradeManagement;
+
+import org.trading.model.*;
+import org.trading.event.*
+
+dialect  "mvel"
+
+rule "Buy High Opening Range"
+    when
+      Price($e: epic, $l: level) // TODO how to always only get the latest event here
+      OpeningRange(high < $l)
+      not(Order(epic == $e, direction == "BUY"))
+      not(Position(epic == $e))
+    then
+      // TODO do rest call to open
+      // When we get the TradeConfirmation event create BuyOrder in session
+end
+
+rule "Sell High Opening Range"
+    when
+      Price($e: epic, $l: level) // TODO how to always only get the latest event here
+      OpeningRange(high > $l && low < $l)
+      not(Order(epic == $e, direction == "SELL"))
+      not(Position(epic == $e))
+    then
+      // TODO Open Buy Order and Sell order
+      // When we get the confirmations we create the SellOrder and BuyOrder
+end
+rule "Buy Low Opening Range"
+    when
+      Price($e: epic, $l: level) // TODO how to always only get the latest event here
+      OpeningRange(high > $l && low < $l)
+      not(Order(epic == $e, direction == "BUY"))
+      not(Position(epic == $e))
+    then
+      // TODO do rest call to open
+      // When we get the confirmations we create the SellOrder and BuyOrder
+end
+rule "Sell Low Opening Range"
+    when
+      Price($e: epic, $l: level) // TODO how to always only get the latest event here
+      OpeningRange(low > $l)
+      not(Order(epic == $e, direction == "SELL"))
+      not(Position(epic == $e))
+    then
+      // TODO Do rest call
+end
+
+rule "Insert Buy Order When Open Confirmed"
+    when
+      TradeConfirmation($e: epic, type == "OPEN", status == "SUCCESS", direction == "BUY")
+    then
+      Order buyOrder = new Order();
+      buyOrder.setEpic($e);
+      buyOrder.setDealId("dealid");
+      buyOrder.setDirection("BUY");
+      insert(buyOrder);
+end
+rule "Insert Sell Order When Open Confirmed"
+    when
+      TradeConfirmation($e: epic, type == "OPEN", status == "SUCCESS", direction == "SELL")
+    then
+      Order sellOrder = new Order();
+      sellOrder.setEpic($e);
+      sellOrder.setDealId("dealid");
+      sellOrder.setDirection("SELL");
+      insert(sellOrder);
+end
