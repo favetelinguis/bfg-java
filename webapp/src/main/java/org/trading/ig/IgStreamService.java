@@ -85,14 +85,14 @@ public class IgStreamService {
         try {
           droolsService.updateAsk(new Ask(epic, Double.parseDouble(ask)));
         } catch (NumberFormatException e) {
-          LOG.warn("Failed to parse ask {} for epic {}", ask, epic);
+          LOG.error("Failed to parse ask {} for epic {}", ask, epic, e);
         }
       }
       if (bid != null) {
         try {
           droolsService.updateBid(new Bid(epic, Double.parseDouble(bid)));
         } catch (NumberFormatException e) {
-          LOG.warn("Failed to parse bid {} for epic {}", bid, epic);
+          LOG.error("Failed to parse bid {} for epic {}", bid, epic, e);
         }
       }
     }));

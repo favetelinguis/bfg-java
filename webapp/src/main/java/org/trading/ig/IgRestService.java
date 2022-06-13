@@ -22,7 +22,7 @@ public class IgRestService {
   }
 
   public void createOrder() {
-    LOG.info("==== IN EXECUTOR REST API");
+//    LOG.info("==== IN EXECUTOR REST API");
     var request = new CreateOTCWorkingOrderV2Request();
     request.setDirection(Direction.BUY);
 //    restAPI.createOTCWorkingOrderV2(authContext.getConversationContext(), request);

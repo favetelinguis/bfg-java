@@ -5,6 +5,7 @@ import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.trading.EntryPointIds;
+import org.trading.event.OpeningRange;
 import org.trading.ig.IgRestService;
 
 public class OpenWorkingOrderExecutor implements Channel {
@@ -21,7 +22,7 @@ public class OpenWorkingOrderExecutor implements Channel {
   @Override
   public void send(Object o) {
     igRestService.createOrder();
-    kieSession.getEntryPoint(EntryPointIds.OPENING_RANGE).insert(o);
+    kieSession.getEntryPoint(EntryPointIds.OPENING_RANGE).insert(new OpeningRange("epic", 2., 3.));
     kieSession.fireAllRules();
   }
 }

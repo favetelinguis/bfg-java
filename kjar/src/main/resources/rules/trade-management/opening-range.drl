@@ -1,0 +1,14 @@
+package rules.tradeManagement;
+
+import org.trading.model.*;
+import org.trading.event.*;
+import org.trading.ChannelIds;
+
+dialect  "mvel"
+
+rule "On each OpeningRange"
+    when
+      $b: OpeningRange() from entry-point "OPENING_RANGE"
+    then
+      System.out.println("OPENING_RANGE");
+end

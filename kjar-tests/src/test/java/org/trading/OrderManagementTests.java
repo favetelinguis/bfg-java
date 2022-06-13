@@ -9,7 +9,7 @@ import org.kie.api.cdi.KReleaseId;
 import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
-import org.trading.model.OpeningRange;
+import org.trading.event.OpeningRange;
 
 public class OrderManagementTests {
 
@@ -29,7 +29,7 @@ public class OrderManagementTests {
   @Test
   public void canCreateOrder() {
     var kieSession = kContainer.newKieSession("rules.trade-management.session");
-    var openingRange = new OpeningRange();
+    var openingRange = new OpeningRange("33", 3., 2.);
     openingRange.setHigh(11.);
     openingRange.setLow(10.);
     kieSession.insert(openingRange);

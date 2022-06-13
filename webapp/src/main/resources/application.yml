@@ -10,3 +10,9 @@ ig:
 logging:
   level:
     root: info
+
+spring:
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true

@@ -1,8 +1,12 @@
 package org.trading.drools;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieScanner;
 import org.kie.api.runtime.KieSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.trading.ChannelIds;
 import org.trading.EntryPointIds;
@@ -13,6 +17,7 @@ import org.trading.ig.IgRestService;
 
 @Service
 public class DroolsService {
+  private static Logger LOG = LoggerFactory.getLogger(DroolsService.class);
   private final KieSession kieSession;
   private final KieScanner kieScanner;
   private final IgRestService igRestService;
@@ -48,8 +53,17 @@ public class DroolsService {
   }
 
   private void triggerKieSessionForEvent(String entryPoint, Object event) {
-    kieSession.getEntryPoint(entryPoint).insert(event);
-    kieSession.fireAllRules();
+    var entry = kieSession.getEntryPoint(entryPoint);
+    if (entryPoint != null) {
+      try {
+        entry.insert(event);
+        kieSession.fireAllRules();
+      } catch (Exception e) {
+        LOG.error("Failure executing rules", e);
+      }
+    } else {
+      LOG.error("THERE IS NO ENTRY POINT: {}", entryPoint);
+    }
   }
 
   private void registerChannels() {
@@ -59,4 +73,14 @@ public class DroolsService {
         ChannelIds.GET_OPENING_RANGE, new OpenWorkingOrderExecutor(igRestService, kieSession));
   }
 
+  public List<Bid> getAllBids() {
+    var results = kieSession.getQueryResults("Get Last 5min bids");
+    LOG.warn("NUMBER OF RESULTS ---------------------- {}", results.size());
+    var bids = new ArrayList<Bid>();
+    for (var result : results) {
+      var bid = (Bid) result.get("$b");
+      bids.add(bid);
+    }
+    return bids;
+  }
 }

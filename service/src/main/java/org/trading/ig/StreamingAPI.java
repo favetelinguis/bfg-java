@@ -82,7 +82,7 @@ public class StreamingAPI {
 				.map(epic ->MARKET_L1_PATTERN.replace("{epic}", epic))
 				.toArray(String[]::new);
 
-		var subscription = new Subscription("MERGE", items, new String[]{"MARKET_STATE", "MARKET_DELAY", "UPDATE_TIME"});
+		var subscription = new Subscription("MERGE", items, new String[]{"MARKET_STATE", "MARKET_DELAY"});
 		subscription.addListener(new SubscriptionListenerAdapter(subscriptionKey, onUpdateLambda));
 		lsClient.subscribe(subscription);
 		var replacedSubscription = subscriptionRegistry.put(subscriptionKey, subscription);

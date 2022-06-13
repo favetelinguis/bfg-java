@@ -12,3 +12,7 @@ rule "On each bid event trigger"
     then
       channels[ChannelIds.OPEN_WORKING_ORDER].send("open");
 end
+
+query "Get Last 5min bids"
+  $b: Bid() over window:time(5m) from entry-point "BID"
+end
