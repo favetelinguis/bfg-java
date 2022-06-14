@@ -14,6 +14,20 @@ market:
       lotSize: 1
       localOpenTime: "09:00"
       localCloseTime: "17:30"
+      marketZone: EU
+      nonTradingDays:
+        - "2023-12-24"
+      barsInOpeningRange: 1
+    -
+      epic: IX.D.NASDAQ.IFE.IP
+      expiry: "-"
+      currency: EUR
+      minStop: 4
+      maxStopMultiplier: 8
+      lotSize: 1
+      localOpenTime: "09:00"
+      localCloseTime: "17:30"
+      marketZone: US
       nonTradingDays:
         - "2023-12-24"
       barsInOpeningRange: 1

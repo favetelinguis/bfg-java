@@ -3,6 +3,7 @@ package org.trading.model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
 import lombok.Data;
 
 @Data
@@ -15,6 +16,15 @@ public class MarketInfo {
   Double lotSize;
   LocalTime localOpenTime;
   LocalTime localCloseTime;
-  List<LocalDate> nonTradingDays;
+  String marketZone;
+  Set<LocalDate> nonTradingDays;
   Long barsInOpeningRange;
+
+  public boolean isEu() {
+    return marketZone.equals("EU");
+  }
+
+  public boolean isUs() {
+    return marketZone.equals("US");
+  }
 }

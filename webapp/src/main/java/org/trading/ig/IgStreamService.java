@@ -62,6 +62,7 @@ public class IgStreamService {
   }
   private void subscribeToConfirms() {
     subscriptionsIds.add(streamingAPI.subscribeForConfirms(authContext.getAccountId(), (item, update) -> {
+      // TODO get rid of initial conf event
       LOG.info(item + " =-= " + update.toString());
     }));
   }

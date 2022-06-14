@@ -7,6 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 import org.trading.ig.IgProps;
 import org.trading.ig.RestAPI;
@@ -15,6 +16,7 @@ import org.trading.ig.rest.dto.session.createSessionV2.CreateSessionV2Request;
 
 @SpringBootApplication
 @EnableConfigurationProperties({IgProps.class, Market.class})
+@EnableScheduling
 public class Bfg {
 
 	public static void main(String[] args) {
