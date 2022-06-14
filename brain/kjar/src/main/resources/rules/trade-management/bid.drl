@@ -2,15 +2,16 @@ package rules.tradeManagement;
 
 import org.trading.model.*;
 import org.trading.event.*;
-import org.trading.ChannelIds;
+import org.trading.ChannelIds
+import org.trading.command.FetchOpeningRangeCommand;
 
 dialect  "mvel"
 
 rule "On each bid event trigger"
     when
-      $b: Bid() from entry-point "BID"
+      $b: Bid($e: epic) from entry-point "BID"
     then
-      channels[ChannelIds.OPEN_WORKING_ORDER].send("open");
+      channels[ChannelIds.OPEN_WORKING_ORDER].send(new FetchOpeningRangeCommand($e));
 end
 
 query "Get Last 5min bids"

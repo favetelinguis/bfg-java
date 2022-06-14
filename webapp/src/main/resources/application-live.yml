@@ -1,1 +1,8 @@
 
+logging:
+  file:
+    path: ${user.home}/bfg/live
+    name: bfg.log
+  logback:
+    rollingpolicy:
+      max-history: 1 # Should create new log file each day

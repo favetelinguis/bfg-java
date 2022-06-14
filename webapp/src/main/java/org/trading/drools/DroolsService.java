@@ -7,10 +7,13 @@ import org.kie.api.builder.KieScanner;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.trading.ChannelIds;
 import org.trading.EntryPointIds;
-import org.trading.drools.executors.OpenWorkingOrderExecutor;
+import org.trading.command.FetchOpeningRangeCommand;
 import org.trading.event.Ask;
 import org.trading.event.Bid;
 import org.trading.ig.IgRestService;
@@ -21,9 +24,12 @@ public class DroolsService {
   private final KieSession kieSession;
   private final KieScanner kieScanner;
   private final IgRestService igRestService;
+  private final ApplicationEventPublisher publisher;
 
-  DroolsService(IgRestService igRestService) {
+  @Autowired
+  DroolsService(IgRestService igRestService, ApplicationEventPublisher publisher) {
     this.igRestService = igRestService;
+    this.publisher = publisher;
     var ks = KieServices.Factory.get();
     var kContainer = ks.newKieContainer(ks.newReleaseId("org.trading", "kjar", "1.0-SNAPSHOT"));
     this.kieSession = kContainer.newKieSession("rules.trade-management.session");
@@ -40,10 +46,12 @@ public class DroolsService {
     kieScanner.start(interval);
   }
 
+  @EventListener(Bid.class)
   public void updateBid(Bid bid) {
     triggerKieSessionForEvent(EntryPointIds.BID, bid);
   }
 
+  @EventListener(Ask.class)
   public void updateAsk(Ask ask) {
     triggerKieSessionForEvent(EntryPointIds.ASK, ask);
   }
@@ -68,9 +76,9 @@ public class DroolsService {
 
   private void registerChannels() {
     kieSession.registerChannel(
-        ChannelIds.OPEN_WORKING_ORDER, new OpenWorkingOrderExecutor(igRestService, kieSession));
+        ChannelIds.OPEN_WORKING_ORDER, (o) -> publisher.publishEvent((FetchOpeningRangeCommand) o));
     kieSession.registerChannel(
-        ChannelIds.GET_OPENING_RANGE, new OpenWorkingOrderExecutor(igRestService, kieSession));
+        ChannelIds.GET_OPENING_RANGE, (o) -> publisher.publishEvent((FetchOpeningRangeCommand) o));
   }
 
   public List<Bid> getAllBids() {

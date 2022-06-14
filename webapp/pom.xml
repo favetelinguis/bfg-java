@@ -7,10 +7,25 @@
 		<groupId>org.trading</groupId>
 		<version>1.0-SNAPSHOT</version>
 	</parent>
-	<groupId>org.trading</groupId>
 	<artifactId>webapp</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
+	<properties>
+		<spring-boot.version>2.7.0</spring-boot.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+<!--			Used so I can still depend on my own parent pom instead of spring boot parent pom-->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring-boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.trading</groupId>
@@ -38,6 +53,11 @@
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<scope>provided</scope>
@@ -58,7 +78,6 @@
 			<groupId>org.kie</groupId>
 			<artifactId>kie-ci</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -69,8 +88,21 @@
 	<build>
 		<plugins>
 			<plugin>
+<!--				Need some extra config since im not using spring boot parent  https://stackoverflow.com/questions/54867295/springboot-no-main-manifest-attribute-maven-->
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${spring-boot.version}</version>
+				<configuration>
+					<mainClass>org.trading.Bfg</mainClass>
+				</configuration>
+
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

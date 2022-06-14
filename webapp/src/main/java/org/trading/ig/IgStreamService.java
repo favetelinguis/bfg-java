@@ -2,14 +2,20 @@ package org.trading.ig;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.trading.Market;
 import org.trading.drools.DroolsService;
 import org.trading.event.Ask;
 import org.trading.event.Bid;
 import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
 import org.trading.ig.rest.ConversationContextV2;
+import org.trading.model.MarketInfo;
 
 @Service
 public class IgStreamService {
@@ -17,18 +23,19 @@ public class IgStreamService {
 
   private final StreamingAPI streamingAPI;
   private AuthenticationResponseAndConversationContext authContext;
+  private final ApplicationEventPublisher publisher;
   private final List<String> subscriptionsIds = new ArrayList<>();
   private final String[] epics;
-  private final DroolsService droolsService;
 
-  public IgStreamService(StreamingAPI streamingAPI, AuthenticationResponseAndConversationContext authContext, DroolsService droolsService, IgProps props) {
+  @Autowired
+  public IgStreamService(StreamingAPI streamingAPI, AuthenticationResponseAndConversationContext authContext, Market epics, ApplicationEventPublisher publisher) {
     this.streamingAPI = streamingAPI;
-    this.epics = props.getEpics().toArray(String[]::new);
+    this.epics = epics.getEpics().stream().map(MarketInfo::getEpic).toArray(String[]::new);
     this.authContext = authContext;
-    this.droolsService = droolsService;
-    run();
+    this.publisher = publisher;
   }
 
+  @PostConstruct
   public void run() {
     streamingAPI.connect(authContext.getAccountId(), (ConversationContextV2) authContext.getConversationContext(), authContext.getLightstreamerEndpoint());
     subscribeToAccount();
@@ -39,15 +46,13 @@ public class IgStreamService {
     subscribeToCandles();
   }
 
-  public void stop() {
-    unsubscribeAll();
-    streamingAPI.disconnect();
-  }
-
-  private void unsubscribeAll() {
+  @PreDestroy
+  public void destroy() {
+    LOG.info("Unsubscribing and disconnecting from IG Stream");
     for (var id : subscriptionsIds) {
       streamingAPI.unsubscribe(id);
     }
+    streamingAPI.disconnect();
   }
 
   private void subscribeToAccount() {
@@ -83,18 +88,19 @@ public class IgStreamService {
       var ask = update.get("OFR_CLOSE");
       if (ask != null) {
         try {
-          droolsService.updateAsk(new Ask(epic, Double.parseDouble(ask)));
+          publisher.publishEvent(new Ask(epic, Double.parseDouble(ask)));
         } catch (NumberFormatException e) {
           LOG.error("Failed to parse ask {} for epic {}", ask, epic, e);
         }
       }
       if (bid != null) {
         try {
-          droolsService.updateBid(new Bid(epic, Double.parseDouble(bid)));
+          publisher.publishEvent(new Bid(epic, Double.parseDouble(bid)));
         } catch (NumberFormatException e) {
           LOG.error("Failed to parse bid {} for epic {}", bid, epic, e);
         }
       }
     }));
   }
+
 }

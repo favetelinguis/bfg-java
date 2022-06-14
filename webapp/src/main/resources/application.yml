@@ -1,11 +1,22 @@
 ig:
-  identifier: ${IG_DEMO_IDENTIFIER}
-  password: ${IG_DEMO_PASSWORD}
-  apiKey: ${IG_DEMO_APIKEY}
+  identifier: ${IG_DEMO_IDENTIFIER:}
+  password: ${IG_DEMO_PASSWORD:}
+  apiKey: ${IG_DEMO_APIKEY:}
   baseUrl: https://demo-api.ig.com/gateway/deal
+market:
   epics:
-    - IX.D.DAX.IFMM.IP
-    - IX.D.NASDAQ.IFE.IP
+    -
+      epic: IX.D.DAX.IFMM.IP
+      expiry: "-"
+      currency: EUR
+      minStop: 5
+      maxStopMultiplier: 7
+      lotSize: 1
+      localOpenTime: "09:00"
+      localCloseTime: "17:30"
+      nonTradingDays:
+        - "2023-12-24"
+      barsInOpeningRange: 1
 
 logging:
   level:
@@ -13,6 +24,6 @@ logging:
 
 spring:
   mvc:
-    hiddenmethod:
+    hiddenmethod: #Check spring in practice book why this is needed
       filter:
         enabled: true
