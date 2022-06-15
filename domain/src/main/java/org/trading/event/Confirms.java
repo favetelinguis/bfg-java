@@ -1,18 +1,23 @@
 package org.trading.event;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.kie.api.definition.type.Expires;
 import org.kie.api.definition.type.Role;
 import org.kie.api.definition.type.Role.Type;
-import org.kie.api.definition.type.Timestamp;
 
-@AllArgsConstructor
 @Data
 @Role(Type.EVENT)
 @Expires("5s")
-public class Bid {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Confirms {
+  String direction;
   String epic;
-  Double level;
+  String dealReference;
+  String dealId;
+  String dealStatus;
+  String reason;
+  String status;
+  String date;
 }

@@ -9,7 +9,7 @@ import org.kie.api.definition.type.Timestamp;
 @Data
 @AllArgsConstructor
 @Role(Type.EVENT)
-@Timestamp("eventTime")
 public class AccountEquity {
-
+  String account;
+  Double equity;
 }

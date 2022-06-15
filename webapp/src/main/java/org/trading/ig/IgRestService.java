@@ -1,15 +1,14 @@
 package org.trading.ig;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.trading.command.FetchOpeningRangeCommand;
 import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
-import org.trading.ig.rest.dto.workingorders.otc.createOTCWorkingOrderV2.CreateOTCWorkingOrderV2Request;
-import org.trading.ig.rest.dto.workingorders.otc.createOTCWorkingOrderV2.Direction;
+import org.trading.ig.rest.dto.prices.getPricesV3.GetPricesV3Response;
 
 @Service
 public class IgRestService {
@@ -24,12 +23,11 @@ public class IgRestService {
     this.authContext = authContext;
   }
 
-  @EventListener(FetchOpeningRangeCommand.class)
-  public void createOrder() {
-    LOG.info("==== IN EXECUTOR REST API");
-    var request = new CreateOTCWorkingOrderV2Request();
-    request.setDirection(Direction.BUY);
-//    restAPI.createOTCWorkingOrderV2(authContext.getConversationContext(), request);
+  // end is in Stockholm timezone since that is the timezone of my IG account
+  public GetPricesV3Response getData(String epic, LocalDateTime start, LocalDateTime end) throws Exception {
+    var formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    LOG.info("GET DATA BETWEEN {} and {}", start.format(formatter), end.format(formatter));
+    return restAPI.getPricesV3(authContext.getConversationContext(), null, null, null, epic, start.format(formatter), end.format(formatter), "MINUTE");
   }
 
   @PreDestroy
@@ -41,4 +39,5 @@ public class IgRestService {
       LOG.warn("Failed to destroy IG session: ", e.getMessage());
     }
   }
+
 }

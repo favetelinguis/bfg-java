@@ -1,0 +1,13 @@
+package rules.tradeManagement;
+
+import org.trading.model.*;
+import org.trading.event.*;
+
+dialect  "mvel"
+
+rule "Atr trigger"
+    when
+      $o: Atr($e: epic) from entry-point "ATR"
+    then
+      System.out.println("DROOLS ATR");
+end

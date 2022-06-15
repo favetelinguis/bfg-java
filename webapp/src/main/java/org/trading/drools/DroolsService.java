@@ -1,5 +1,13 @@
 package org.trading.drools;
 
+import static org.trading.EntryPointIds.ACCOUNT_EQUITY;
+import static org.trading.EntryPointIds.ASK;
+import static org.trading.EntryPointIds.ATR;
+import static org.trading.EntryPointIds.BID;
+import static org.trading.EntryPointIds.CONFIRMS;
+import static org.trading.EntryPointIds.OPENING_RANGE;
+import static org.trading.EntryPointIds.OPU;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.kie.api.KieServices;
@@ -12,10 +20,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.trading.ChannelIds;
-import org.trading.EntryPointIds;
 import org.trading.command.FetchOpeningRangeCommand;
+import org.trading.event.AccountEquity;
 import org.trading.event.Ask;
+import org.trading.event.Atr;
 import org.trading.event.Bid;
+import org.trading.event.Confirms;
+import org.trading.event.OpeningRange;
+import org.trading.event.Opu;
 import org.trading.ig.IgRestService;
 
 @Service
@@ -48,16 +60,37 @@ public class DroolsService {
 
   @EventListener(Bid.class)
   public void updateBid(Bid bid) {
-    triggerKieSessionForEvent(EntryPointIds.BID, bid);
+    triggerKieSessionForEvent(BID, bid);
   }
 
   @EventListener(Ask.class)
   public void updateAsk(Ask ask) {
-    triggerKieSessionForEvent(EntryPointIds.ASK, ask);
+    triggerKieSessionForEvent(ASK, ask);
   }
 
-  public void updateData(String data) {
-    triggerKieSessionForEvent(EntryPointIds.OPENING_RANGE, data);
+  @EventListener(AccountEquity.class)
+  public void updateEquity(AccountEquity event) {
+    triggerKieSessionForEvent(ACCOUNT_EQUITY, event);
+  }
+
+  @EventListener(Opu.class)
+  public void updateOpu(Opu event) {
+    triggerKieSessionForEvent(OPU, event);
+  }
+
+  @EventListener(Confirms.class)
+  public void updateConfirms(Confirms event) {
+    triggerKieSessionForEvent(CONFIRMS, event);
+  }
+
+  @EventListener(OpeningRange.class)
+  public void updateConfirms(OpeningRange event) {
+    triggerKieSessionForEvent(OPENING_RANGE, event);
+  }
+
+  @EventListener(Atr.class)
+  public void updateConfirms(Atr event) {
+    triggerKieSessionForEvent(ATR, event);
   }
 
   private void triggerKieSessionForEvent(String entryPoint, Object event) {
@@ -81,7 +114,7 @@ public class DroolsService {
         ChannelIds.GET_OPENING_RANGE, (o) -> publisher.publishEvent((FetchOpeningRangeCommand) o));
   }
 
-  public List<Bid> getAllBids() {
+  public List<Bid> queryGetAllBids() {
     var results = kieSession.getQueryResults("Get Last 5min bids");
     LOG.warn("NUMBER OF RESULTS ---------------------- {}", results.size());
     var bids = new ArrayList<Bid>();

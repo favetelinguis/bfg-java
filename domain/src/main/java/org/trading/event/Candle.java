@@ -1,5 +1,6 @@
 package org.trading.event;
 
+import java.time.Instant;
 import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +11,20 @@ import org.kie.api.definition.type.Role.Type;
 import org.kie.api.definition.type.Timestamp;
 
 @Data
-@AllArgsConstructor
 public class Candle {
-  private String epic;
+  private final String epic;
+  private Double askOpen;
+  private Double askHigh;
+  private Double askLow;
+  private Double askClose;
+  private Double bidOpen;
+  private Double bidHigh;
+  private Double bidLow;
+  private Double bidClose;
+  private Long numberTicks;
+  private Instant updateTime;
+
+  public Candle(String epic) {
+    this.epic = epic;
+  }
 }

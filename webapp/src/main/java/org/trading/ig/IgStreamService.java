@@ -1,5 +1,10 @@
 package org.trading.ig;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
@@ -14,8 +19,12 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.trading.Market;
 import org.trading.drools.DroolsService;
+import org.trading.event.AccountEquity;
 import org.trading.event.Ask;
 import org.trading.event.Bid;
+import org.trading.event.Candle;
+import org.trading.event.Confirms;
+import org.trading.event.Opu;
 import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
 import org.trading.ig.rest.ConversationContextV2;
 import org.trading.model.MarketInfo;
@@ -27,15 +36,18 @@ public class IgStreamService {
   private final StreamingAPI streamingAPI;
   private AuthenticationResponseAndConversationContext authContext;
   private final ApplicationEventPublisher publisher;
+  private final ObjectMapper objectMapper;
   private final List<String> subscriptionsIds = new ArrayList<>();
   private final String[] epics;
+  private final CandleCache candleCache = new CandleCache();
 
   @Autowired
-  public IgStreamService(StreamingAPI streamingAPI, AuthenticationResponseAndConversationContext authContext, Market epics, ApplicationEventPublisher publisher) {
+  public IgStreamService(StreamingAPI streamingAPI, AuthenticationResponseAndConversationContext authContext, Market epics, ApplicationEventPublisher publisher, ObjectMapper objectMapper) {
     this.streamingAPI = streamingAPI;
     this.epics = epics.getEpics().stream().map(MarketInfo::getEpic).toArray(String[]::new);
     this.authContext = authContext;
     this.publisher = publisher;
+    this.objectMapper = objectMapper;
   }
 
   @EventListener(ApplicationReadyEvent.class)
@@ -60,23 +72,59 @@ public class IgStreamService {
 
   private void subscribeToAccount() {
     subscriptionsIds.add(streamingAPI.subscribeForAccountBalanceInfo(authContext.getAccountId(), (item, update) -> {
-      LOG.info(item + " =-= " + update.toString());
+      var account = item.split(":")[1];
+      var equity = update.get("EQUITY");
+      if (equity != null) {
+        publisher.publishEvent(new AccountEquity(account, Double.parseDouble(equity)));
+      }
     }));
   }
   private void subscribeToConfirms() {
     subscriptionsIds.add(streamingAPI.subscribeForConfirms(authContext.getAccountId(), (item, update) -> {
-      // TODO get rid of initial conf event
-      LOG.info(item + " =-= " + update.toString());
+      var rawConfirms = update.get("CONFIRMS");
+      if (rawConfirms != null) {
+        try {
+          var confirms = objectMapper.readValue(rawConfirms, Confirms.class);
+          if (!isOld(confirms)) {
+            publisher.publishEvent(confirms);
+          }
+        } catch (JsonProcessingException | ParseException e) {
+          LOG.error("Failed to parse Confirms", e);
+        }
+      }
     }));
   }
+
+  // Check if this confirs is older then 10seconds then its assumed to be an old confirms.
+  // The confirms subscripts always sends the last confirms when staring so I need to filter it here.
+  // I have tried to disable snapshot in subscription but to no affect.
+  private boolean isOld(Confirms confirms) throws ParseException {
+    var dtf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    var utcNow = Instant.now();
+    var confirmsUpdate= confirms.getDate().replace("T"," ");
+    var utcConfirmsUpdate = dtf.parse(confirmsUpdate).toInstant();
+    return utcConfirmsUpdate.plusSeconds(10).isBefore(utcNow);
+  }
+
   private void subscribeToOPU() {
     subscriptionsIds.add(streamingAPI.subscribeForOPUs(authContext.getAccountId(), (item, update) -> {
-      LOG.info(item + " =-= " + update.toString());
+      var rawOpu = update.get("OPU");
+      if (rawOpu != null) {
+        try {
+          var opu = objectMapper.readValue(rawOpu, Opu.class);
+          publisher.publishEvent(opu);
+        } catch (JsonProcessingException e) {
+          LOG.error("Failed to parse OPU", e);
+        }
+      }
     }));
   }
   private void subscribeToWOU() {
     subscriptionsIds.add(streamingAPI.subscribeForWOUs(authContext.getAccountId(), (item, update) -> {
-      LOG.info(item + " =-= " + update.toString());
+      var rawWou = update.get("OPU");
+      if (rawWou != null) {
+        LOG.warn("WOU never get anything here but did now: {} {}", item, update.toString());
+      }
     }));
   }
   private void subscribeToMarkets() {
@@ -86,7 +134,6 @@ public class IgStreamService {
   }
   private void subscribeToCandles() {
     subscriptionsIds.add(streamingAPI.subscribeForChartCandles(epics, "1MINUTE", (item, update) -> {
-      // TODO need to manage when cons is 1 and we have a full candle
       var epic = item.split(":")[1];
       var bid = update.get("BID_CLOSE");
       var ask = update.get("OFR_CLOSE");
@@ -103,6 +150,10 @@ public class IgStreamService {
         } catch (NumberFormatException e) {
           LOG.error("Failed to parse bid {} for epic {}", bid, epic, e);
         }
+      }
+      var maybeCompletedCandle = candleCache.update(epic, update);
+      if (maybeCompletedCandle.isPresent()) {
+        publisher.publishEvent(maybeCompletedCandle.get());
       }
     }));
   }

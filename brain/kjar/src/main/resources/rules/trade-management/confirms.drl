@@ -1,0 +1,13 @@
+package rules.tradeManagement;
+
+import org.trading.model.*;
+import org.trading.event.*;
+
+dialect  "mvel"
+
+rule "Confirms trigger"
+    when
+      $c: Confirms($e: epic) from entry-point "CONFIRMS"
+    then
+      System.out.println("DROOLS CONFIRMS");
+end

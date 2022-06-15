@@ -1,0 +1,13 @@
+package rules.tradeManagement;
+
+import org.trading.model.*;
+import org.trading.event.*;
+
+dialect  "mvel"
+
+rule "AccountEquity trigger"
+    when
+      $o: Opu($e: epic) from entry-point "ACCOUNT_EQUITY"
+    then
+      System.out.println("DROOLS Account Equity");
+end

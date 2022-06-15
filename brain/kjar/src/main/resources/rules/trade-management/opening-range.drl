@@ -10,5 +10,5 @@ rule "On each OpeningRange"
     when
       $b: OpeningRange() from entry-point "OPENING_RANGE"
     then
-      System.out.println("OPENING_RANGE");
+      System.out.println("DROOLS OPENING_RANGE");
 end
