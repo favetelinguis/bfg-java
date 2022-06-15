@@ -16,21 +16,16 @@ public class CandleCache {
       if (oldCandle == null) {
         return Optional.empty();
       }
-      return mergeAndReturnCompletedCandle(oldCandle, newCandle);
+      mergeCandles(oldCandle, newCandle);
+      return Optional.of(oldCandle);
     } else {
-      candleMap.compute(epic, (k,v) -> mergeCandles(epic, v, newCandle));
+      var oldCandle= candleMap.getOrDefault(epic, new Candle(epic));
+      mergeCandles(oldCandle, newCandle);
       return Optional.empty();
     }
   }
 
-  private Optional<Candle> mergeAndReturnCompletedCandle(Candle oldCandle, Map<String, String> newCandle) {
-    return Optional.of(mergeCandles(oldCandle.getEpic(), oldCandle, newCandle));
-  }
-
-  private Candle mergeCandles(String epic, Candle oldCandle, Map<String, String> newCandle) {
-    if (oldCandle == null) {
-      oldCandle = new Candle(epic);
-    }
+  private void mergeCandles(Candle oldCandle, Map<String, String> newCandle) {
     for (Map.Entry<String, String> entry : newCandle.entrySet()) {
       switch (entry.getKey()) {
         case "OFR_OPEN":
@@ -67,6 +62,5 @@ public class CandleCache {
           break;
       }
     }
-    return oldCandle;
   }
 }

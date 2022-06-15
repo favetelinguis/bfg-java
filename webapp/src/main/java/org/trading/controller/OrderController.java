@@ -24,7 +24,7 @@ public class OrderController {
 
   @GetMapping("/index")
   public String index(Model model) {
-    var bids = droolsService.queryGetAllBids();
+    var bids = droolsService.queryGetMidPrices();
     model.addAttribute("bids", bids.isEmpty() ? Collections.EMPTY_LIST : bids);
     return "index";
   }

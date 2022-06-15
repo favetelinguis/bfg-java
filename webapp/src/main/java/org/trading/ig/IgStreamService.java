@@ -7,23 +7,18 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.trading.Market;
-import org.trading.drools.DroolsService;
 import org.trading.event.AccountEquity;
-import org.trading.event.Ask;
-import org.trading.event.Bid;
-import org.trading.event.Candle;
 import org.trading.event.Confirms;
+import org.trading.event.MidPrice;
 import org.trading.event.Opu;
 import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
 import org.trading.ig.rest.ConversationContextV2;
@@ -135,25 +130,16 @@ public class IgStreamService {
   private void subscribeToCandles() {
     subscriptionsIds.add(streamingAPI.subscribeForChartCandles(epics, "1MINUTE", (item, update) -> {
       var epic = item.split(":")[1];
-      var bid = update.get("BID_CLOSE");
-      var ask = update.get("OFR_CLOSE");
-      if (ask != null) {
-        try {
-          publisher.publishEvent(new Ask(epic, Double.parseDouble(ask)));
-        } catch (NumberFormatException e) {
-          LOG.error("Failed to parse ask {} for epic {}", ask, epic, e);
-        }
-      }
-      if (bid != null) {
-        try {
-          publisher.publishEvent(new Bid(epic, Double.parseDouble(bid)));
-        } catch (NumberFormatException e) {
-          LOG.error("Failed to parse bid {} for epic {}", bid, epic, e);
-        }
-      }
+      // Update candle for epic
       var maybeCompletedCandle = candleCache.update(epic, update);
       if (maybeCompletedCandle.isPresent()) {
         publisher.publishEvent(maybeCompletedCandle.get());
+      }
+      // Publish price change
+      if (update.containsKey("OFR_CLOSE") && update.containsKey("BID_CLOSE")) {
+        var ofrClose = Double.parseDouble(update.get("OFR_CLOSE"));
+        var bidClose = Double.parseDouble(update.get("BID_CLOSE"));
+        publisher.publishEvent(new MidPrice(epic, (ofrClose + bidClose) / 2));
       }
     }));
   }

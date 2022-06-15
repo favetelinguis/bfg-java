@@ -9,11 +9,11 @@ dialect  "mvel"
 
 rule "On each bid event trigger"
     when
-      $b: Bid($e: epic) from entry-point "BID"
+      $b: MidPrice($e: epic) from entry-point "MID_PRICE"
     then
       channels[ChannelIds.OPEN_WORKING_ORDER].send(new FetchOpeningRangeCommand($e));
 end
 
-query "Get Last 5min bids"
-  $b: Bid() over window:time(5m) from entry-point "BID"
+query "Get Last 5min mid prices"
+  $b: MidPrice() over window:time(5m) from entry-point "MID_PRICE"
 end

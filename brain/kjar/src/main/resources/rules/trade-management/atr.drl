@@ -7,7 +7,7 @@ dialect  "mvel"
 
 rule "Atr trigger"
     when
-      $o: Atr($e: epic) from entry-point "ATR"
+      $o: Atr($e: epic, $l: level) from entry-point "ATR"
     then
-      System.out.println("DROOLS ATR");
+      System.out.println("DROOLS ATR " + $l);
 end

@@ -24,6 +24,9 @@ public class IgRestService {
   }
 
   // end is in Stockholm timezone since that is the timezone of my IG account
+  // The answer will have the oldest data first in the list.
+  // Both start and end is included HOWEVER the end time is still forming, that will not be a completed candle so
+  // most often i want to exclude that.
   public GetPricesV3Response getData(String epic, LocalDateTime start, LocalDateTime end) throws Exception {
     var formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     LOG.info("GET DATA BETWEEN {} and {}", start.format(formatter), end.format(formatter));

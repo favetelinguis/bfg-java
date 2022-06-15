@@ -1,10 +1,9 @@
 package org.trading.drools;
 
 import static org.trading.EntryPointIds.ACCOUNT_EQUITY;
-import static org.trading.EntryPointIds.ASK;
 import static org.trading.EntryPointIds.ATR;
-import static org.trading.EntryPointIds.BID;
 import static org.trading.EntryPointIds.CONFIRMS;
+import static org.trading.EntryPointIds.MID_PRICE;
 import static org.trading.EntryPointIds.OPENING_RANGE;
 import static org.trading.EntryPointIds.OPU;
 
@@ -22,10 +21,9 @@ import org.springframework.stereotype.Service;
 import org.trading.ChannelIds;
 import org.trading.command.FetchOpeningRangeCommand;
 import org.trading.event.AccountEquity;
-import org.trading.event.Ask;
 import org.trading.event.Atr;
-import org.trading.event.Bid;
 import org.trading.event.Confirms;
+import org.trading.event.MidPrice;
 import org.trading.event.OpeningRange;
 import org.trading.event.Opu;
 import org.trading.ig.IgRestService;
@@ -58,14 +56,9 @@ public class DroolsService {
     kieScanner.start(interval);
   }
 
-  @EventListener(Bid.class)
-  public void updateBid(Bid bid) {
-    triggerKieSessionForEvent(BID, bid);
-  }
-
-  @EventListener(Ask.class)
-  public void updateAsk(Ask ask) {
-    triggerKieSessionForEvent(ASK, ask);
+  @EventListener(MidPrice.class)
+  public void updateBid(MidPrice bid) {
+    triggerKieSessionForEvent(MID_PRICE, bid);
   }
 
   @EventListener(AccountEquity.class)
@@ -114,14 +107,14 @@ public class DroolsService {
         ChannelIds.GET_OPENING_RANGE, (o) -> publisher.publishEvent((FetchOpeningRangeCommand) o));
   }
 
-  public List<Bid> queryGetAllBids() {
-    var results = kieSession.getQueryResults("Get Last 5min bids");
+  public List<MidPrice> queryGetMidPrices() {
+    var results = kieSession.getQueryResults("Get Last 5min mid prices");
     LOG.warn("NUMBER OF RESULTS ---------------------- {}", results.size());
-    var bids = new ArrayList<Bid>();
+    var midPrices = new ArrayList<MidPrice>();
     for (var result : results) {
-      var bid = (Bid) result.get("$b");
-      bids.add(bid);
+      var bid = (MidPrice) result.get("$mp");
+      midPrices.add(bid);
     }
-    return bids;
+    return midPrices;
   }
 }

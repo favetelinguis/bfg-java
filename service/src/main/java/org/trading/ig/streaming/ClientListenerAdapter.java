@@ -27,7 +27,7 @@ public class ClientListenerAdapter implements ClientListener {
 
 	@Override
 	public void onStatusChange(String status) {
-		LOG.info("onStatusChange: " + status);
+		LOG.debug("onStatusChange: " + status);
 	}
 
 	@Override

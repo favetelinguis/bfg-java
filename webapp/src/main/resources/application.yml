@@ -30,7 +30,7 @@ market:
       marketZone: US
       nonTradingDays:
         - "2023-12-24"
-      barsInOpeningRange: 1
+      barsInOpeningRange: 5
 
 logging:
   level:
