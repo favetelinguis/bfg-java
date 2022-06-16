@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +37,7 @@ public class MarketDataComponent {
   private final IgRestService igRestService;
   private final ApplicationEventPublisher publisher;
 
-  // TODO this is not thread safe enough I guess!!!
-  // Guess it not that critical since currently each entry in map only get one update every minute
-  // so the chance of competing thread changing the same epic is slim to none.
-  private final ConcurrentHashMap<String, MarketCache> barSeriesCacheMap = new ConcurrentHashMap<>();
+  private final MarketCache marketCache = new MarketCache();
 
 
   @Autowired
@@ -60,14 +58,12 @@ public class MarketDataComponent {
       var response = igRestService.getData(marketOpen.getEpic(), start, end);
       LOG.info("Backfill has {} items", response.getPrices().size());
       var baseBars = createBaseBars(response.getPrices());
-      var cache = new MarketCache(marketOpen.getEpic());
+      var cache = new MarketState(marketOpen.getEpic());
       // Important baseBars is sorted oldest to newest I think it cant handle sorting
       for (var b : baseBars) {
         cache.addBar(b);
       }
-      if (barSeriesCacheMap.putIfAbsent(marketOpen.getEpic(), cache) != null) {
-        LOG.error("The map already has a value for {}", marketOpen.getEpic());
-      }
+      marketCache.init(cache);
     } catch (Exception e) {
       LOG.error("Failed backfilling data for epic {}", marketOpen.getEpic(), e);
     }
@@ -79,18 +75,16 @@ public class MarketDataComponent {
   // This will do nothing for epics until we have a backfill that has initiated the cache with epic.
   @EventListener(CompleteCandle.class)
   public void updateBarSeriesAndPublishAtr(CompleteCandle c) {
-    if (barSeriesCacheMap.containsKey(c.getEpic())) {
-      LOG.info("Candledata {}", c);
-      var cache = barSeriesCacheMap.get(c.getEpic());
-      cache.addBar(c.getBar());
-      publisher.publishEvent(new Atr(c.getEpic(), cache.getCurrentAtr()));
+    var maybeAtr = marketCache.updateAndGetAtr(c);
+    if (maybeAtr.isPresent()) {
+      publisher.publishEvent(new Atr(c.getEpic(), maybeAtr.get()));
     }
   }
 
   // When the market close remove it from the cache so there will be no new candle updates for it
   @EventListener(MarketClose.class)
   public void removeMarket(MarketClose marketClose) {
-    var market = barSeriesCacheMap.remove(marketClose.getEpic());
+    var market = marketCache.remove(marketClose.getEpic());
     if (market == null) {
       LOG.info("Trying to remove {} from market cache since its closed but could not find the market.", marketClose.getEpic());
     } else {
@@ -143,15 +137,42 @@ public class MarketDataComponent {
   }
 
   class MarketCache {
+    private final Map<String, MarketState> marketStateMap = new HashMap<>();
+    synchronized void init(MarketState state) {
+      if (marketStateMap.putIfAbsent(state.getEpic(), state) != null) {
+
+      }
+    }
+
+    synchronized MarketState remove(String epic) {
+      return marketStateMap.remove(epic);
+    }
+
+    synchronized Optional<Double> updateAndGetAtr(CompleteCandle c) {
+      if (marketStateMap.containsKey(c.getEpic())) {
+        LOG.info("Candledata {}", c);
+        var cache = marketStateMap.get(c.getEpic());
+        cache.addBar(c.getBar());
+        return Optional.of(cache.getCurrentAtr());
+      }
+      return Optional.empty();
+    }
+  }
+
+  class MarketState {
     private final String epic;
     private final BaseBarSeries barSeries;
     private final ATRIndicator atrIndicator;
 
-    MarketCache(String epic) {
+    MarketState(String epic) {
       this.epic = epic;
       this.barSeries = new BaseBarSeries(epic);
       barSeries.setMaximumBarCount(100);
       this.atrIndicator = new ATRIndicator(barSeries, SystemProperties.atrPeriod);
+    }
+
+    public String getEpic() {
+      return epic;
     }
 
     void addBar(BaseBar newBar) {
@@ -160,6 +181,7 @@ public class MarketDataComponent {
       } catch (IllegalArgumentException e) {
         LOG.error("Failed to insert bar ", e);
       }
+
     }
 
     Double getCurrentAtr() {

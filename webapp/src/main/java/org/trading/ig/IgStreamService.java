@@ -7,12 +7,11 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PreDestroy;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -170,11 +169,10 @@ public class IgStreamService {
 
   class MarketCache {
 
-    private final ConcurrentHashMap<String, Candle> candleMap = new ConcurrentHashMap<>();
+    private final Map<String, Candle> candleMap = new HashMap<>();
 
     // Update candle and return a candle if this is a completed candle
-    // TODO this is probably not enough thread safe
-    Optional<CompleteCandle> update(String epic, Map<String, String> newCandle) {
+    synchronized Optional<CompleteCandle> update(String epic, Map<String, String> newCandle) {
       candleMap.putIfAbsent(epic, new Candle(epic));
       var oldCandle = candleMap.get(epic);
       return oldCandle.mergeAndReturnIfComplete(newCandle);
@@ -212,7 +210,7 @@ public class IgStreamService {
         return new CompleteCandle(epic, bar);
       }
 
-      public synchronized Optional<CompleteCandle> mergeAndReturnIfComplete(Map<String, String> newCandle) {
+      public Optional<CompleteCandle> mergeAndReturnIfComplete(Map<String, String> newCandle) {
         for (Map.Entry<String, String> entry : newCandle.entrySet()) {
           switch (entry.getKey()) {
             case "OFR_OPEN":
