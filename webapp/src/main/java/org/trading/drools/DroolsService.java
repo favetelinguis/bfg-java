@@ -9,6 +9,7 @@ import static org.trading.EntryPointIds.OPU;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.PostConstruct;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieScanner;
 import org.kie.api.runtime.KieSession;
@@ -19,7 +20,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.trading.ChannelIds;
-import org.trading.command.FetchOpeningRangeCommand;
+import org.trading.command.ClosePositionCommand;
+import org.trading.command.CreateWorkingOrderCommand;
+import org.trading.command.DeleteWorkingOrderCommand;
+import org.trading.command.UpdateWorkingOrderCommand;
 import org.trading.event.AccountEquity;
 import org.trading.event.Atr;
 import org.trading.event.Confirms;
@@ -27,6 +31,7 @@ import org.trading.event.MidPrice;
 import org.trading.event.OpeningRange;
 import org.trading.event.Opu;
 import org.trading.ig.IgRestService;
+import org.trading.market.MarketProps;
 
 @Service
 public class DroolsService {
@@ -35,17 +40,28 @@ public class DroolsService {
   private final KieScanner kieScanner;
   private final IgRestService igRestService;
   private final ApplicationEventPublisher publisher;
+  private final MarketProps marketProps;
 
   @Autowired
-  DroolsService(IgRestService igRestService, ApplicationEventPublisher publisher) {
+  DroolsService(IgRestService igRestService, ApplicationEventPublisher publisher, MarketProps marketProps) {
     this.igRestService = igRestService;
     this.publisher = publisher;
+    this.marketProps = marketProps;
     var ks = KieServices.Factory.get();
     var kContainer = ks.newKieContainer(ks.newReleaseId("org.trading", "kjar", "1.0-SNAPSHOT"));
     this.kieSession = kContainer.newKieSession("rules.trade-management.session");
     this.kieScanner = ks.newKieScanner(kContainer);
-    startScanner(1000 * 5); // Check for updated rules every 30 seconds
+  }
+
+  // TODO will this always run before the first event is fired for kiesession? might need to do in constructor?
+  @PostConstruct
+  public void initialSetup() {
+    startScanner(1000 * 30); // Check for updated rules every 30 seconds
     registerChannels();
+    // Insert market info for each market into session
+    for (var m : marketProps.getEpics()) {
+      kieSession.insert(m);
+    }
   }
 
   public void stopScanner() {
@@ -102,9 +118,13 @@ public class DroolsService {
 
   private void registerChannels() {
     kieSession.registerChannel(
-        ChannelIds.OPEN_WORKING_ORDER, (o) -> publisher.publishEvent((FetchOpeningRangeCommand) o));
+        ChannelIds.CREATE_WORKING_ORDER, (o) -> publisher.publishEvent((CreateWorkingOrderCommand) o));
     kieSession.registerChannel(
-        ChannelIds.GET_OPENING_RANGE, (o) -> publisher.publishEvent((FetchOpeningRangeCommand) o));
+        ChannelIds.DELETE_WORKING_ORDER, (o) -> publisher.publishEvent((DeleteWorkingOrderCommand) o));
+    kieSession.registerChannel(
+        ChannelIds.UPDATE_WORKING_ORDER, (o) -> publisher.publishEvent((UpdateWorkingOrderCommand) o));
+    kieSession.registerChannel(
+        ChannelIds.CLOSE_POSITION, (o) -> publisher.publishEvent((ClosePositionCommand) o));
   }
 
   public List<MidPrice> queryGetMidPrices() {

@@ -3,7 +3,6 @@ package rules.tradeManagement;
 import org.trading.model.*;
 import org.trading.event.*;
 import org.trading.ChannelIds
-import org.trading.command.FetchOpeningRangeCommand;
 
 dialect  "mvel"
 
@@ -11,9 +10,8 @@ rule "On each bid event trigger"
     when
       $b: MidPrice($e: epic) from entry-point "MID_PRICE"
     then
-      channels[ChannelIds.OPEN_WORKING_ORDER].send(new FetchOpeningRangeCommand($e));
 end
 
 query "Get Last 5min mid prices"
-  $b: MidPrice() over window:time(5m) from entry-point "MID_PRICE"
+  $mp: MidPrice() over window:time(5m) from entry-point "MID_PRICE"
 end

@@ -17,4 +17,8 @@ public class OpeningRange {
   String epic;
   Double midHigh;
   Double midLow;
+
+  public Double pipsInOpeningRange() {
+    return midHigh - midLow;
+  }
 }

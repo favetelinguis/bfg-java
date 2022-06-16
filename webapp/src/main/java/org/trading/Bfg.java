@@ -1,6 +1,5 @@
 package org.trading;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.boot.SpringApplication;
@@ -14,9 +13,10 @@ import org.trading.ig.IgProps;
 import org.trading.ig.RestAPI;
 import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
 import org.trading.ig.rest.dto.session.createSessionV2.CreateSessionV2Request;
+import org.trading.market.MarketProps;
 
 @SpringBootApplication
-@EnableConfigurationProperties({IgProps.class, Market.class})
+@EnableConfigurationProperties({IgProps.class, MarketProps.class})
 @EnableScheduling
 @EnableAsync
 public class Bfg {

@@ -1,4 +1,4 @@
-package org.trading;
+package org.trading.market;
 
 import java.util.List;
 import javax.validation.constraints.NotNull;
@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 import org.trading.model.MarketInfo;
 
@@ -15,7 +14,7 @@ import org.trading.model.MarketInfo;
 @Validated
 @AllArgsConstructor
 @Getter
-public class Market {
+public class MarketProps {
   @NotNull
   private List<MarketInfo> epics;
 }

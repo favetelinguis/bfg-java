@@ -66,4 +66,10 @@ class DemoApplicationTests {
 		assert series.getBar(series.getEndIndex()).getClosePrice() == laterBar.getClosePrice();
 	}
 
+	@Test
+	void parser() {
+		var a = Double.parseDouble("13252");
+		var b = 2;
+	}
+
 }

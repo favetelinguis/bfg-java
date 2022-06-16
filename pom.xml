@@ -126,7 +126,7 @@
   <modules>
     <module>service</module>
     <module>webapp</module>
-    <module>domain</module>
+    <module>shared</module>
     <module>brain</module>
   </modules>
 </project>

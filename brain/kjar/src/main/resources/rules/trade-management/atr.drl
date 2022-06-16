@@ -1,7 +1,9 @@
 package rules.tradeManagement;
 
 import org.trading.model.*;
-import org.trading.event.*;
+import org.trading.event.*
+import org.trading.ChannelIds
+import org.trading.command.ClosePositionCommand;
 
 dialect  "mvel"
 
@@ -10,4 +12,5 @@ rule "Atr trigger"
       $o: Atr($e: epic, $l: level) from entry-point "ATR"
     then
       System.out.println("DROOLS ATR " + $l);
+      channels[ChannelIds.CLOSE_POSITION].send(new ClosePositionCommand($e));
 end

@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class FetchOpeningRangeCommand {
+public class CreateWorkingOrderCommand {
   String epic;
 }
