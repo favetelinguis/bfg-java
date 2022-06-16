@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 import org.trading.ig.IgProps;
+import org.trading.ig.IgSessionCreationException;
 import org.trading.ig.RestAPI;
 import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
 import org.trading.ig.rest.dto.session.createSessionV2.CreateSessionV2Request;
@@ -42,7 +43,11 @@ public class Bfg {
 		var authRequest = new CreateSessionV2Request();
 		authRequest.setIdentifier(props.getIdentifier());
 		authRequest.setPassword(props.getPassword());
-		return restAPI.createSession(authRequest, props.getApiKey());
+		try {
+			return restAPI.createSession(authRequest, props.getApiKey());
+		} catch (Exception e) {
+			throw new IgSessionCreationException("IG", e);
+		}
 	}
 
 }
