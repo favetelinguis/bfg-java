@@ -1,4 +1,4 @@
-package org.trading.market;
+package org.trading.market.data;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -6,11 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,29 +15,29 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
-import org.ta4j.core.indicators.ATRIndicator;
 import org.ta4j.core.num.DecimalNum;
-import org.trading.SystemProperties;
 import org.trading.event.Atr;
 import org.trading.event.MarketClose;
+import org.trading.event.MidPrice;
 import org.trading.event.OpeningRange;
 import org.trading.ig.IgRestService;
 import org.trading.ig.rest.dto.prices.getPricesV3.GetPricesV3Response;
 import org.trading.ig.rest.dto.prices.getPricesV3.PricesItem;
+import org.trading.market.MarketOpen;
+import org.trading.market.data.MarketCache.MarketState;
 
 @Component
-public class MarketDataComponent {
+class MarketDataComponent {
 
   private static Logger LOG = LoggerFactory.getLogger(MarketDataComponent.class);
   private final IgRestService igRestService;
   private final ApplicationEventPublisher publisher;
 
-  private final MarketCache marketCache = new MarketCache();
+  private final MarketCache marketCache = new MarketCache(this);
 
 
   @Autowired
-  public MarketDataComponent(IgRestService igRestService, ApplicationEventPublisher publisher) {
+  MarketDataComponent(IgRestService igRestService, ApplicationEventPublisher publisher) {
     this.igRestService = igRestService;
     this.publisher = publisher;
   }
@@ -51,7 +47,7 @@ public class MarketDataComponent {
   // TODO check this when running before open, do i get exactly from 9:00 to 9:14 and the first candle update is 9:15???
   @Async
   @EventListener(MarketOpen.class)
-  public void backfill(MarketOpen marketOpen) {
+  void backfill(MarketOpen marketOpen) {
     var end = LocalDateTime.now().withSecond(0).minusMinutes(1);
     var start = end.minusMinutes(14); // Hardcoded since we know i need 14 periods
     try {
@@ -73,17 +69,25 @@ public class MarketDataComponent {
   // For example NASDAQ a 11AM when im trading DAX I will still get candles for NASDAQ since the stream
   // is always subscribed.
   // This will do nothing for epics until we have a backfill that has initiated the cache with epic.
-  @EventListener(CompleteCandle.class)
-  public void updateBarSeriesAndPublishAtr(CompleteCandle c) {
-    var maybeAtr = marketCache.updateAndGetAtr(c);
-    if (maybeAtr.isPresent()) {
-      publisher.publishEvent(new Atr(c.getEpic(), maybeAtr.get()));
+  @EventListener(BarUpdate.class)
+  void updateBarSeriesAndPublishAtr(BarUpdate bar) {
+    if (marketCache.containsEpic(bar.getEpic())) {
+      // Send mid price for every market that is trading atm if this update change bid and ask
+      if (bar.getUpdate().containsKey("OFR_CLOSE") && bar.getUpdate().containsKey("BID_CLOSE")) {
+        var ofrClose = Double.parseDouble(bar.getUpdate().get("OFR_CLOSE"));
+        var bidClose = Double.parseDouble(bar.getUpdate().get("BID_CLOSE"));
+        publisher.publishEvent(new MidPrice(bar.getEpic(), (ofrClose + bidClose) / 2));
+      }
+      var maybeAtr = marketCache.updateAndGetAtr(bar);
+      if (maybeAtr.isPresent()) {
+        publisher.publishEvent(new Atr(bar.getEpic(), maybeAtr.get()));
+      }
     }
   }
 
   // When the market close remove it from the cache so there will be no new candle updates for it
   @EventListener(MarketClose.class)
-  public void removeMarket(MarketClose marketClose) {
+  void removeMarket(MarketClose marketClose) {
     var market = marketCache.remove(marketClose.getEpic());
     if (market == null) {
       LOG.info("Trying to remove {} from market cache since its closed but could not find the market.", marketClose.getEpic());
@@ -95,7 +99,7 @@ public class MarketDataComponent {
 
   @Async
   @EventListener(MarketOpen.class)
-  public void getOpeningRange(MarketOpen marketOpen) {
+  void getOpeningRange(MarketOpen marketOpen) {
     try {
       var start = LocalDate.now().atTime(marketOpen.getOpeningTime());
       var end = start.plusMinutes(marketOpen.getBarsInOpeningRange() - 1); // subtract 1 since end time is excluded
@@ -134,59 +138,6 @@ public class MarketDataComponent {
       baseBars.add(bar);
     }
     return baseBars;
-  }
-
-  class MarketCache {
-    private final Map<String, MarketState> marketStateMap = new HashMap<>();
-    synchronized void init(MarketState state) {
-      if (marketStateMap.putIfAbsent(state.getEpic(), state) != null) {
-
-      }
-    }
-
-    synchronized MarketState remove(String epic) {
-      return marketStateMap.remove(epic);
-    }
-
-    synchronized Optional<Double> updateAndGetAtr(CompleteCandle c) {
-      if (marketStateMap.containsKey(c.getEpic())) {
-        LOG.info("Candledata {}", c);
-        var cache = marketStateMap.get(c.getEpic());
-        cache.addBar(c.getBar());
-        return Optional.of(cache.getCurrentAtr());
-      }
-      return Optional.empty();
-    }
-  }
-
-  class MarketState {
-    private final String epic;
-    private final BaseBarSeries barSeries;
-    private final ATRIndicator atrIndicator;
-
-    MarketState(String epic) {
-      this.epic = epic;
-      this.barSeries = new BaseBarSeries(epic);
-      barSeries.setMaximumBarCount(100);
-      this.atrIndicator = new ATRIndicator(barSeries, SystemProperties.atrPeriod);
-    }
-
-    public String getEpic() {
-      return epic;
-    }
-
-    void addBar(BaseBar newBar) {
-      try {
-        barSeries.addBar(newBar);
-      } catch (IllegalArgumentException e) {
-        LOG.error("Failed to insert bar ", e);
-      }
-
-    }
-
-    Double getCurrentAtr() {
-      return atrIndicator.getValue(barSeries.getEndIndex()).doubleValue();
-    }
   }
 }
 
