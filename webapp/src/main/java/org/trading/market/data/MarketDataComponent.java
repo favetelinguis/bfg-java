@@ -7,8 +7,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -26,10 +25,9 @@ import org.trading.ig.rest.dto.prices.getPricesV3.PricesItem;
 import org.trading.market.MarketOpen;
 import org.trading.market.data.MarketCache.MarketState;
 
+@Slf4j
 @Component
 class MarketDataComponent {
-
-  private static Logger LOG = LoggerFactory.getLogger(MarketDataComponent.class);
   private final IgRestService igRestService;
   private final ApplicationEventPublisher publisher;
 
@@ -52,7 +50,7 @@ class MarketDataComponent {
     var start = end.minusMinutes(14); // Hardcoded since we know i need 14 periods
     try {
       var response = igRestService.getData(marketOpen.getEpic(), start, end);
-      LOG.info("Backfill has {} items", response.getPrices().size());
+      log.info("Backfill has {} items", response.getPrices().size());
       var baseBars = createBaseBars(response.getPrices());
       var cache = new MarketState(marketOpen.getEpic());
       // Important baseBars is sorted oldest to newest I think it cant handle sorting
@@ -61,7 +59,7 @@ class MarketDataComponent {
       }
       marketCache.init(cache);
     } catch (Exception e) {
-      LOG.error("Failed backfilling data for epic {}", marketOpen.getEpic(), e);
+      log.error("Failed backfilling data for epic {}", marketOpen.getEpic(), e);
     }
   }
 
@@ -90,10 +88,10 @@ class MarketDataComponent {
   void removeMarket(MarketClose marketClose) {
     var market = marketCache.remove(marketClose.getEpic());
     if (market == null) {
-      LOG.info("Trying to remove {} from market cache since its closed but could not find the market.", marketClose.getEpic());
+      log.info("Trying to remove {} from market cache since its closed but could not find the market.", marketClose.getEpic());
     } else {
 
-      LOG.info("Successfully remove {} so it will no longer process market data since the market is outside trading hours.", marketClose.getEpic());
+      log.info("Successfully remove {} so it will no longer process market data since the market is outside trading hours.", marketClose.getEpic());
     }
   }
 
@@ -106,7 +104,7 @@ class MarketDataComponent {
       var result = igRestService.getData(marketOpen.getEpic(), start, end);
       publisher.publishEvent(convertPricesToOpeningRange(marketOpen.getEpic(), result));
     } catch (Exception e) {
-      LOG.error("Failed to get opening range for {}", marketOpen.getEpic(), e);
+      log.error("Failed to get opening range for {}", marketOpen.getEpic(), e);
     }
   }
 
@@ -117,7 +115,7 @@ class MarketDataComponent {
     var bidMin = result.getPrices().stream().mapToDouble(p -> p.getLowPrice().getBid().doubleValue()).min().orElseThrow();
     var midHigh = (askMax + bidMax) / 2;
     var midLow = (askMin + bidMin) / 2;
-    LOG.info("{} has opening range high:{} low:{}", epic, midHigh, midLow);
+    log.info("{} has opening range high:{} low:{}", epic, midHigh, midLow);
     return new OpeningRange(epic, midHigh, midLow);
   }
 

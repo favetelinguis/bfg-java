@@ -9,8 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,9 +27,8 @@ import org.trading.repository.IgStreamRepository;
 import org.trading.repository.IgStreamEntity;
 
 @Service
+@Slf4j
 public class IgStreamService {
-
-  private static Logger LOG = LoggerFactory.getLogger(IgStreamService.class);
 
   private final StreamingAPI streamingAPI;
   private AuthenticationResponseAndConversationContext authContext;
@@ -67,7 +65,7 @@ public class IgStreamService {
 
   @PreDestroy
   public void destroy() {
-    LOG.info("Unsubscribing and disconnecting from IG Stream");
+    log.info("Unsubscribing and disconnecting from IG Stream");
     for (var id : subscriptionsIds) {
       streamingAPI.unsubscribe(id);
     }
@@ -81,7 +79,7 @@ public class IgStreamService {
           try {
             igStreamRepository.save(new IgStreamEntity(LocalDateTime.now(), account, update));
           } catch (Exception e) {
-            LOG.error("Failure ", e);
+            log.error("Failure ", e);
           }
           var equity = update.get("EQUITY");
           if (equity != null) {
@@ -103,7 +101,7 @@ public class IgStreamService {
                 publisher.publishEvent(confirms);
               }
             } catch (JsonProcessingException | ParseException e) {
-              LOG.error("Failed to parse Confirms", e);
+              log.error("Failed to parse Confirms", e);
             }
           }
         }));
@@ -131,7 +129,7 @@ public class IgStreamService {
               var opu = objectMapper.readValue(rawOpu, Opu.class);
               publisher.publishEvent(opu);
             } catch (JsonProcessingException e) {
-              LOG.error("Failed to parse OPU", e);
+              log.error("Failed to parse OPU", e);
             }
           }
         }));
@@ -144,7 +142,7 @@ public class IgStreamService {
           igStreamRepository.save(new IgStreamEntity(LocalDateTime.now(), account, update));
           var rawWou = update.get("OPU");
           if (rawWou != null) {
-            LOG.warn("WOU never get anything here but did now: {} {}", item, update.toString());
+            log.warn("WOU never get anything here but did now: {} {}", item, update.toString());
           }
         }));
   }

@@ -3,8 +3,7 @@ package org.trading.market;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,9 +25,8 @@ import org.trading.model.MarketInfo;
  * If server is started between market open + delta AND market close - delta events are fired for market open right away
  */
 @Component
+@Slf4j
 public class MarketScheduleComponent {
-
-  private static Logger LOG = LoggerFactory.getLogger(MarketScheduleComponent.class);
   private final MarketProps market;
   private ApplicationEventPublisher publisher;
   private final static Long OPEN_DELTA = 15l; // TODO should be atr calc +1?

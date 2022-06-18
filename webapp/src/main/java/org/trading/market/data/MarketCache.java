@@ -6,16 +6,14 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.indicators.ATRIndicator;
 import org.trading.SystemProperties;
 
+@Slf4j
 class MarketCache {
-  private static Logger LOG = LoggerFactory.getLogger(MarketCache.class);
-
   private final MarketDataComponent marketDataComponent;
   private final Map<String, MarketState> marketStateMap = new HashMap<>();
   private final BarCache barCache = new BarCache();
@@ -43,7 +41,7 @@ class MarketCache {
     // First update Candle
     var maybeCompletedCandle = barCache.update(c.getEpic(), c.getUpdate());
     if (maybeCompletedCandle.isPresent()) {
-      LOG.info("Completed change for {} - {}", c.getEpic(), c.getUpdate());
+      log.info("Completed change for {} - {}", c.getEpic(), c.getUpdate());
       // If we get a completed change update the bar series and get atr
       var cache = marketStateMap.get(c.getEpic());
       cache.addBar(maybeCompletedCandle.get().getBar());
@@ -73,7 +71,7 @@ class MarketCache {
       try {
         barSeries.addBar(newBar);
       } catch (IllegalArgumentException e) {
-        LOG.error("Failed to insert bar ", e);
+        log.error("Failed to insert bar ", e);
       }
 
     }

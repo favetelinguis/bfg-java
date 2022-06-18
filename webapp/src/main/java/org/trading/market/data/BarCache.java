@@ -8,15 +8,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.num.DecimalNum;
 import org.trading.market.data.MarketCache.CompleteCandle;
 
+@Slf4j
 class BarCache {
-  private static Logger LOG = LoggerFactory.getLogger(BarCache.class);
-
   private final Map<String, Candle> candleMap = new HashMap<>();
 
   // Update candle and return a candle if this is a completed candle
@@ -88,7 +86,7 @@ class BarCache {
             this.setNumberTicks(Long.parseLong(entry.getValue()));
             break;
           case "UTM":
-            LOG.warn("DATEUPDATE for {}: {}",entry.getKey() , Instant.ofEpochMilli(Long.parseLong(entry.getValue())).atZone(ZoneId.of("Europe/Stockholm")).format(
+            log.warn("DATEUPDATE for {}: {}",entry.getKey() , Instant.ofEpochMilli(Long.parseLong(entry.getValue())).atZone(ZoneId.of("Europe/Stockholm")).format(
                 DateTimeFormatter.ISO_DATE_TIME));
             this.setUpdateTime(Instant.ofEpochMilli(Long.parseLong(entry.getValue())));
             break;

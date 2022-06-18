@@ -11,17 +11,15 @@ import static org.trading.EntryPointIds.OPU;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieScanner;
 import org.kie.api.runtime.KieSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.trading.ChannelIds;
-import org.trading.SystemProperties;
 import org.trading.command.ClosePositionCommand;
 import org.trading.command.CreateWorkingOrderCommand;
 import org.trading.command.DeleteWorkingOrderCommand;
@@ -37,8 +35,8 @@ import org.trading.ig.IgRestService;
 import org.trading.market.MarketProps;
 
 @Service
+@Slf4j
 public class DroolsService {
-  private static Logger LOG = LoggerFactory.getLogger(DroolsService.class);
   private final KieSession kieSession;
   private final KieScanner kieScanner;
   private final IgRestService igRestService;
@@ -117,10 +115,10 @@ public class DroolsService {
         entry.insert(event);
         kieSession.fireAllRules();
       } catch (Exception e) {
-        LOG.error("Failure executing rules", e);
+        log.error("Failure executing rules", e);
       }
     } else {
-      LOG.error("THERE IS NO ENTRY POINT: {}", entryPoint);
+      log.error("THERE IS NO ENTRY POINT: {}", entryPoint);
     }
   }
 
@@ -137,7 +135,7 @@ public class DroolsService {
 
   public List<MidPrice> queryGetMidPrices() {
     var results = kieSession.getQueryResults("Get Last 5min mid prices");
-    LOG.warn("NUMBER OF RESULTS ---------------------- {}", results.size());
+    log.warn("NUMBER OF RESULTS ---------------------- {}", results.size());
     var midPrices = new ArrayList<MidPrice>();
     for (var result : results) {
       var bid = (MidPrice) result.get("$mp");
