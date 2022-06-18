@@ -1,5 +1,6 @@
 package org.trading.market;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import org.slf4j.Logger;
@@ -46,13 +47,16 @@ public class MarketScheduleComponent {
   @EventListener(ApplicationReadyEvent.class)
   public void checkIfMarketIsOpenNow() {
     var today = LocalDate.now();
-    market.getEpics().stream()
-        .filter(m -> !m.getNonTradingDays().contains(today)) // Exclude market if it is not trading today
-        .forEach( marketInfo -> {
-          if (isOpenNow(marketInfo)) {
-            sendOpenEvent(marketInfo.getEpic(), marketInfo.getMarketZone().equals("EU") ? EU_OPEN : US_OPEN, marketInfo.getBarsInOpeningRange());
-          }
-        });
+    // Exclude weekends which is done in chron schedule and needs to be done here also
+    if (!today.getDayOfWeek().equals(DayOfWeek.SATURDAY) && !today.getDayOfWeek().equals(DayOfWeek.SUNDAY)) {
+      market.getEpics().stream()
+          .filter(m -> !m.getNonTradingDays().contains(today)) // Exclude market if it is not trading today
+          .forEach( marketInfo -> {
+            if (isOpenNow(marketInfo)) {
+              sendOpenEvent(marketInfo.getEpic(), marketInfo.getMarketZone().equals("EU") ? EU_OPEN : US_OPEN, marketInfo.getBarsInOpeningRange());
+            }
+          });
+    }
   }
 
   // will trigger every weekday at 9:15

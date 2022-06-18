@@ -11,13 +11,12 @@ import org.kie.api.definition.type.Role.Type;
 @Role(Type.EVENT)
 @Expires("5s")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Confirms {
+public class Confirms extends StatusChecker {
   String direction;
   String epic;
   String dealReference;
   String dealId;
-  String dealStatus;
   String reason;
-  String status;
   String date;
+
 }
