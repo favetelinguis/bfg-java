@@ -41,3 +41,6 @@ spring:
     hiddenmethod: #Check spring in practice book why this is needed
       filter:
         enabled: true
+  data:
+    mongodb:
+      database: bfg

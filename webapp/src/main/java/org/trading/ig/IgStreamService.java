@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.PreDestroy;
@@ -23,6 +24,8 @@ import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
 import org.trading.ig.rest.ConversationContextV2;
 import org.trading.market.data.BarUpdate;
 import org.trading.model.MarketInfo;
+import org.trading.repository.IgStreamRepository;
+import org.trading.repository.IgStreamEntity;
 
 @Service
 public class IgStreamService {
@@ -33,18 +36,20 @@ public class IgStreamService {
   private AuthenticationResponseAndConversationContext authContext;
   private final ApplicationEventPublisher publisher;
   private final ObjectMapper objectMapper;
+  private final IgStreamRepository igStreamRepository;
   private final List<String> subscriptionsIds = new ArrayList<>();
   private final String[] epics;
 
   @Autowired
   public IgStreamService(StreamingAPI streamingAPI,
       AuthenticationResponseAndConversationContext authContext, MarketProps epics,
-      ApplicationEventPublisher publisher, ObjectMapper objectMapper) {
+      ApplicationEventPublisher publisher, ObjectMapper objectMapper, IgStreamRepository igStreamRepository) {
     this.streamingAPI = streamingAPI;
     this.epics = epics.getEpics().stream().map(MarketInfo::getEpic).toArray(String[]::new);
     this.authContext = authContext;
     this.publisher = publisher;
     this.objectMapper = objectMapper;
+    this.igStreamRepository = igStreamRepository;
   }
 
   @EventListener(ApplicationReadyEvent.class)
@@ -73,6 +78,11 @@ public class IgStreamService {
     subscriptionsIds.add(
         streamingAPI.subscribeForAccountBalanceInfo(authContext.getAccountId(), (item, update) -> {
           var account = item.split(":")[1];
+          try {
+            igStreamRepository.save(new IgStreamEntity(LocalDateTime.now(), account, update));
+          } catch (Exception e) {
+            LOG.error("Failure ", e);
+          }
           var equity = update.get("EQUITY");
           if (equity != null) {
             publisher.publishEvent(new AccountEquity(account, Double.parseDouble(equity)));
@@ -83,6 +93,8 @@ public class IgStreamService {
   private void subscribeToConfirms() {
     subscriptionsIds.add(
         streamingAPI.subscribeForConfirms(authContext.getAccountId(), (item, update) -> {
+          var account = item.split(":")[1];
+          igStreamRepository.save(new IgStreamEntity(LocalDateTime.now(), account, update));
           var rawConfirms = update.get("CONFIRMS");
           if (rawConfirms != null) {
             try {
@@ -111,6 +123,8 @@ public class IgStreamService {
   private void subscribeToOPU() {
     subscriptionsIds.add(
         streamingAPI.subscribeForOPUs(authContext.getAccountId(), (item, update) -> {
+          var account = item.split(":")[1];
+          igStreamRepository.save(new IgStreamEntity(LocalDateTime.now(), account, update));
           var rawOpu = update.get("OPU");
           if (rawOpu != null) {
             try {
@@ -126,6 +140,8 @@ public class IgStreamService {
   private void subscribeToWOU() {
     subscriptionsIds.add(
         streamingAPI.subscribeForWOUs(authContext.getAccountId(), (item, update) -> {
+          var account = item.split(":")[1];
+          igStreamRepository.save(new IgStreamEntity(LocalDateTime.now(), account, update));
           var rawWou = update.get("OPU");
           if (rawWou != null) {
             LOG.warn("WOU never get anything here but did now: {} {}", item, update.toString());
@@ -135,6 +151,8 @@ public class IgStreamService {
 
   private void subscribeToMarkets() {
     subscriptionsIds.add(streamingAPI.subscribeForMarkets(epics, (item, update) -> {
+      var epic = item.split(":")[1];
+      igStreamRepository.save(new IgStreamEntity(LocalDateTime.now(), epic, update));
       // TODO add market state and delay as input to drool to control system if market state changes or data is delayed
     }));
   }
@@ -142,6 +160,7 @@ public class IgStreamService {
   private void subscribeToCandles() {
     subscriptionsIds.add(streamingAPI.subscribeForChartCandles(epics, "1MINUTE", (item, update) -> {
       var epic = item.split(":")[1];
+      igStreamRepository.save(new IgStreamEntity(LocalDateTime.now(), epic, update));
       publisher.publishEvent(new BarUpdate(epic, update));
     }));
   }
