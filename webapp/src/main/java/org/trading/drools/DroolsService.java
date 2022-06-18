@@ -23,6 +23,7 @@ import org.trading.ChannelIds;
 import org.trading.command.ClosePositionCommand;
 import org.trading.command.CreateWorkingOrderCommand;
 import org.trading.command.DeleteWorkingOrderCommand;
+import org.trading.command.TradeResultCommand;
 import org.trading.command.UpdateWorkingOrderCommand;
 import org.trading.event.AccountEquity;
 import org.trading.event.Atr;
@@ -131,6 +132,8 @@ public class DroolsService {
         ChannelIds.UPDATE_WORKING_ORDER, (c) -> publisher.publishEvent((UpdateWorkingOrderCommand) c));
     kieSession.registerChannel(
         ChannelIds.CLOSE_POSITION, (c) -> publisher.publishEvent((ClosePositionCommand) c));
+    kieSession.registerChannel(
+        ChannelIds.TRADE_RESULT, (c) -> publisher.publishEvent((TradeResultCommand) c));
   }
 
   public List<MidPrice> queryGetMidPrices() {
