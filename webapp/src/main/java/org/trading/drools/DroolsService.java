@@ -20,6 +20,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.trading.ChannelIds;
+import org.trading.SystemProperties;
 import org.trading.command.ClosePositionCommand;
 import org.trading.command.CreateWorkingOrderCommand;
 import org.trading.command.DeleteWorkingOrderCommand;
@@ -62,6 +63,7 @@ public class DroolsService {
     for (var m : marketProps.getEpics()) {
       kieSession.insert(m);
     }
+    kieSession.insert(new SystemProperties());
   }
 
   public void stopScanner() {

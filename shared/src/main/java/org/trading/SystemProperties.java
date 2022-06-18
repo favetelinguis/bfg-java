@@ -2,7 +2,8 @@ package org.trading;
 
 import lombok.Getter;
 
-public interface SystemProperties {
+@Getter
+public class SystemProperties {
   Double percentageRiskPerOrder = 0.5;
   Double maxTotalRiskPercentageForAccount = 6.;
   Double oneRAsMultipleOfAtr = 2.;

@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.Set;
 import lombok.Data;
 
+// TODO add validation to this class so when i read props it get validated
 @Data
 public class MarketInfo {
   String epic;
+  Double spread;
   String expiry;
   String currency;
   Double minStop;
