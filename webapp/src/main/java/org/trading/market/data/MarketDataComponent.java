@@ -74,9 +74,9 @@ class MarketDataComponent {
     if (marketCache.containsEpic(bar.getEpic())) {
       // Send mid price for every market that is trading atm if this update change bid and ask
       if (bar.getUpdate().containsKey("OFR_CLOSE") && bar.getUpdate().containsKey("BID_CLOSE")) {
-        var ofrClose = Double.parseDouble(bar.getUpdate().get("OFR_CLOSE"));
+        var askClose = Double.parseDouble(bar.getUpdate().get("OFR_CLOSE"));
         var bidClose = Double.parseDouble(bar.getUpdate().get("BID_CLOSE"));
-        publisher.publishEvent(new MidPrice(bar.getEpic(), (ofrClose + bidClose) / 2));
+        publisher.publishEvent(new MidPrice(bar.getEpic(), (askClose + bidClose) / 2, askClose - bidClose));
       }
       var maybeAtr = marketCache.updateAndGetAtr(bar);
       if (maybeAtr.isPresent()) {
@@ -111,7 +111,7 @@ class MarketDataComponent {
   }
 
   private OpeningRange convertPricesToOpeningRange(String epic, GetPricesV3Response result) {
-    var askMax = result.getPrices().stream().mapToDouble(p -> p.getHighPrice().getAsk().doubleValue()).max().orElseThrow();
+    var askMax = result.getPrices().stream().mapToDouble(p -> p.getHighPrice().getAsk().doubleValue()).max().orElseThrow(); // TODO if the market is closed then I will get 0 items in price request and this will throw exception
     var bidMax = result.getPrices().stream().mapToDouble(p -> p.getHighPrice().getBid().doubleValue()).max().orElseThrow();
     var askMin = result.getPrices().stream().mapToDouble(p -> p.getLowPrice().getAsk().doubleValue()).min().orElseThrow();
     var bidMin = result.getPrices().stream().mapToDouble(p -> p.getLowPrice().getBid().doubleValue()).min().orElseThrow();

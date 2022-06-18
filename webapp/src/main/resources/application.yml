@@ -7,7 +7,6 @@ market:
   epics:
     -
       epic: IX.D.DAX.IFMM.IP
-      spread: 1.4,
       expiry: "-"
       currency: EUR
       minStop: 5
@@ -21,7 +20,6 @@ market:
       barsInOpeningRange: 1
     -
       epic: IX.D.NASDAQ.IFE.IP
-      spread: 1.,
       expiry: "-"
       currency: EUR
       minStop: 4

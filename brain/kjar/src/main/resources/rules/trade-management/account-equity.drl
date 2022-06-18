@@ -5,9 +5,22 @@ import org.trading.event.*;
 
 dialect  "mvel"
 
-rule "AccountEquity trigger"
+rule "Account equity trigger first time for account"
     when
-      $o: Opu($e: epic) from entry-point "ACCOUNT_EQUITY"
+      $equity: AccountEquity($a: account, $e: equity) from entry-point "ACCOUNT_EQUITY"
+      not AccountEquity(account== $a)
     then
-      System.out.println("DROOLS Account Equity");
+      System.out.println("Initial account equity for " + $a + " with level " + $e);
+      insert($equity);
 end
+
+rule "Update AccountEquity for account"
+    when
+      AccountEquity($a: account, $e: equity) from entry-point "ACCOUNT_EQUITY"
+      $equity: AccountEquity(account== $a)
+    then
+      System.out.println("Update account equity for " + $a + " with level " + $e);
+      modify($equity){setEquity($e)}
+end
+
+// TODO when eqity for account change do risk adjustment in open orders

@@ -2,15 +2,25 @@ package rules.tradeManagement;
 
 import org.trading.model.*;
 import org.trading.event.*
-import org.trading.ChannelIds
-import org.trading.command.ClosePositionCommand;
 
 dialect  "mvel"
 
-rule "Atr trigger"
+rule "Atr trigger first time for market"
     when
-      $o: Atr($e: epic, $l: level) from entry-point "ATR"
+      $atr: Atr($e: epic, $l: level) from entry-point "ATR"
+      not Atr(epic == $e)
     then
-      System.out.println("DROOLS ATR " + $l);
-      channels[ChannelIds.CLOSE_POSITION].send(new ClosePositionCommand($e));
+      System.out.println("Initial ATR for " + $e + " with level " + $l);
+      insert($atr);
 end
+
+rule "Update ATR for market"
+    when
+      Atr($e: epic, $l: level) from entry-point "ATR"
+      $atr: Atr(epic == $e)
+    then
+      System.out.println("Update ATR for " + $e + " with level " + $l);
+      modify($atr){setLevel($l)}
+end
+
+// TODO when ATR for market change and there is an order for that market, risk adjust it

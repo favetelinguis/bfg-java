@@ -7,4 +7,5 @@ public class EntryPointIds {
   public static final String OPU = "OPU";
   public static final String CONFIRMS = "CONFIRMS";
   public static final String ATR = "ATR";
+  public static final String MARKET_CLOSE = "MARKET_CLOSE";
 }

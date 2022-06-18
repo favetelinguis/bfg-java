@@ -56,7 +56,7 @@ public class MarketScheduleComponent {
   }
 
   // will trigger every weekday at 9:15
-  @Scheduled(cron = "0 15 9 * * 1-5")
+  @Scheduled(cron = "0 15 9 * * 1-7")
   public void europeOpenPlus15Minutes() {
     var today = LocalDate.now();
     market.getEpics().stream()
@@ -67,7 +67,7 @@ public class MarketScheduleComponent {
         });
   }
 
-  @Scheduled(cron = "0 25 17 * * 1-5")
+  @Scheduled(cron = "0 25 17 * * 1-7")
   public void europeCloseMinus5Minutes() {
     var today = LocalDate.now();
     market.getEpics().stream()
@@ -77,7 +77,7 @@ public class MarketScheduleComponent {
           sendCloseEvent(marketInfo.getEpic());
         });
   }
-  @Scheduled(cron = "0 45 15 * * 1-5")
+  @Scheduled(cron = "0 45 15 * * 1-7")
   public void usOpenPlus15Minutes() {
     var today = LocalDate.now();
     market.getEpics().stream()
@@ -87,7 +87,7 @@ public class MarketScheduleComponent {
           sendOpenEvent(marketInfo.getEpic(), US_OPEN, marketInfo.getBarsInOpeningRange());
         });
   }
-  @Scheduled(cron = "0 55 21 * * 1-5")
+  @Scheduled(cron = "0 55 21 * * 1-7")
   public void usCloseMinus5Minutes() {
     var today = LocalDate.now();
     market.getEpics().stream()

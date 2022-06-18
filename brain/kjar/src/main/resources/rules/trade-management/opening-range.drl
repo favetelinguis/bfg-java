@@ -8,7 +8,8 @@ dialect  "mvel"
 
 rule "On each OpeningRange"
     when
-      $b: OpeningRange() from entry-point "OPENING_RANGE"
+      $or: OpeningRange($e: epic) from entry-point "OPENING_RANGE"
     then
-      System.out.println("DROOLS OPENING_RANGE");
+      System.out.println("Insert opening range for " + $e);
+      insert($or);
 end

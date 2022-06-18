@@ -56,12 +56,13 @@ class MarketCache {
     private final String epic;
     private final BaseBarSeries barSeries;
     private final ATRIndicator atrIndicator;
+    private final int atrPeriod = 14;
 
     MarketState(String epic) {
       this.epic = epic;
       this.barSeries = new BaseBarSeries(epic);
       barSeries.setMaximumBarCount(100);
-      this.atrIndicator = new ATRIndicator(barSeries, SystemProperties.atrPeriod);
+      this.atrIndicator = new ATRIndicator(barSeries, atrPeriod);
     }
 
     String getEpic() {

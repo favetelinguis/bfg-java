@@ -3,6 +3,7 @@ package org.trading.drools;
 import static org.trading.EntryPointIds.ACCOUNT_EQUITY;
 import static org.trading.EntryPointIds.ATR;
 import static org.trading.EntryPointIds.CONFIRMS;
+import static org.trading.EntryPointIds.MARKET_CLOSE;
 import static org.trading.EntryPointIds.MID_PRICE;
 import static org.trading.EntryPointIds.OPENING_RANGE;
 import static org.trading.EntryPointIds.OPU;
@@ -28,6 +29,7 @@ import org.trading.command.UpdateWorkingOrderCommand;
 import org.trading.event.AccountEquity;
 import org.trading.event.Atr;
 import org.trading.event.Confirms;
+import org.trading.event.MarketClose;
 import org.trading.event.MidPrice;
 import org.trading.event.OpeningRange;
 import org.trading.event.Opu;
@@ -63,7 +65,6 @@ public class DroolsService {
     for (var m : marketProps.getEpics()) {
       kieSession.insert(m);
     }
-    kieSession.insert(new SystemProperties());
   }
 
   public void stopScanner() {
@@ -95,12 +96,17 @@ public class DroolsService {
   }
 
   @EventListener(OpeningRange.class)
-  public void updateConfirms(OpeningRange event) {
+  public void updateOpeningRange(OpeningRange event) {
     triggerKieSessionForEvent(OPENING_RANGE, event);
   }
 
+  @EventListener(MarketClose.class)
+  public void updateMarketClose(MarketClose event) {
+    triggerKieSessionForEvent(MARKET_CLOSE, event);
+  }
+
   @EventListener(Atr.class)
-  public void updateConfirms(Atr event) {
+  public void updateAtr(Atr event) {
     triggerKieSessionForEvent(ATR, event);
   }
 
@@ -120,13 +126,13 @@ public class DroolsService {
 
   private void registerChannels() {
     kieSession.registerChannel(
-        ChannelIds.CREATE_WORKING_ORDER, (o) -> publisher.publishEvent((CreateWorkingOrderCommand) o));
+        ChannelIds.CREATE_WORKING_ORDER, (c) -> publisher.publishEvent((CreateWorkingOrderCommand) c));
     kieSession.registerChannel(
-        ChannelIds.DELETE_WORKING_ORDER, (o) -> publisher.publishEvent((DeleteWorkingOrderCommand) o));
+        ChannelIds.DELETE_WORKING_ORDER, (c) -> publisher.publishEvent((DeleteWorkingOrderCommand) c));
     kieSession.registerChannel(
-        ChannelIds.UPDATE_WORKING_ORDER, (o) -> publisher.publishEvent((UpdateWorkingOrderCommand) o));
+        ChannelIds.UPDATE_WORKING_ORDER, (c) -> publisher.publishEvent((UpdateWorkingOrderCommand) c));
     kieSession.registerChannel(
-        ChannelIds.CLOSE_POSITION, (o) -> publisher.publishEvent((ClosePositionCommand) o));
+        ChannelIds.CLOSE_POSITION, (c) -> publisher.publishEvent((ClosePositionCommand) c));
   }
 
   public List<MidPrice> queryGetMidPrices() {

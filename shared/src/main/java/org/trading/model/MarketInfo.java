@@ -10,7 +10,6 @@ import lombok.Data;
 @Data
 public class MarketInfo {
   String epic;
-  Double spread;
   String expiry;
   String currency;
   Double minStop;
