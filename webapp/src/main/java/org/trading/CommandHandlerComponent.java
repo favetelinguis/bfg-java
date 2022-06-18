@@ -31,24 +31,27 @@ public class CommandHandlerComponent {
   @Async
   @EventListener(CreateWorkingOrderCommand.class)
   public void createWorkingOrder(CreateWorkingOrderCommand command) {
+    igRestService.createOrder();
     log.info("Create working order for epic {}", command.getEpic());
   }
   @Async
   @EventListener(DeleteWorkingOrderCommand.class)
   public void deleteWorkingOrder(DeleteWorkingOrderCommand command) {
+    igRestService.deleteOrder("dummy");
     log.info("Delete working order for epic {}", command.getEpic());
   }
   @Async
   @EventListener(UpdateWorkingOrderCommand.class)
   public void updateWorkingOrder(UpdateWorkingOrderCommand command) {
+    igRestService.updateOrder("dummy");
     log.info("Update working order for epic {}", command.getEpic());
   }
   @Async
   @EventListener(ClosePositionCommand.class)
   public void closePosition(ClosePositionCommand command) {
+    igRestService.closePosition();
     log.info("Close position for epic {}", command.getEpic());
   }
-
   @Async
   @EventListener(TradeResultCommand.class)
   public void tradeResults(TradeResultCommand command) {

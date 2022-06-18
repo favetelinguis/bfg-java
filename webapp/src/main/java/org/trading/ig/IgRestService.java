@@ -7,7 +7,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
+import org.trading.ig.rest.dto.positions.otc.closeOTCPositionV1.CloseOTCPositionV1Request;
 import org.trading.ig.rest.dto.prices.getPricesV3.GetPricesV3Response;
+import org.trading.ig.rest.dto.workingorders.otc.createOTCWorkingOrderV2.CreateOTCWorkingOrderV2Request;
+import org.trading.ig.rest.dto.workingorders.otc.deleteOTCWorkingOrderV2.DeleteOTCWorkingOrderV2Response;
+import org.trading.ig.rest.dto.workingorders.otc.updateOTCWorkingOrderV2.UpdateOTCWorkingOrderV2Request;
 
 @Service
 @Slf4j
@@ -29,6 +33,24 @@ public class IgRestService {
     var formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     log.info("GET DATA BETWEEN {} and {}", start.format(formatter), end.format(formatter));
     return restAPI.getPricesV3(authContext.getConversationContext(), null, null, null, epic, start.format(formatter), end.format(formatter), "MINUTE");
+  }
+
+  public void createOrder() {
+    var request = new CreateOTCWorkingOrderV2Request();
+//    restAPI.createOTCWorkingOrderV2(authContext.getConversationContext(), request);
+  }
+
+  public void deleteOrder(String dealId) {
+//    restAPI.deleteOTCWorkingOrderV2(authContext.getConversationContext(), dealId);
+  }
+
+  public void updateOrder(String dealId) {
+    var request = new UpdateOTCWorkingOrderV2Request();
+//    restAPI.updateOTCWorkingOrderV2(authContext.getConversationContext(), dealId, request);
+  }
+  public void closePosition() {
+    var request = new CloseOTCPositionV1Request();
+//    restAPI.closeOTCPositionV1(authContext.getConversationContext(), request);
   }
 
   @PreDestroy
