@@ -35,6 +35,7 @@ import org.trading.event.OpeningRange;
 import org.trading.event.Opu;
 import org.trading.ig.IgRestService;
 import org.trading.market.MarketProps;
+import org.trading.repository.DroolsRuleRuntimeRepository;
 
 @Service
 @Slf4j
@@ -44,12 +45,14 @@ public class DroolsService {
   private final IgRestService igRestService;
   private final ApplicationEventPublisher publisher;
   private final MarketProps marketProps;
+  private final DroolsRuleRuntimeRepository droolsRuleRuntimeRepository;
 
   @Autowired
-  DroolsService(IgRestService igRestService, ApplicationEventPublisher publisher, MarketProps marketProps) {
+  DroolsService(IgRestService igRestService, ApplicationEventPublisher publisher, MarketProps marketProps, DroolsRuleRuntimeRepository droolsRuleRuntimeRepository) {
     this.igRestService = igRestService;
     this.publisher = publisher;
     this.marketProps = marketProps;
+    this.droolsRuleRuntimeRepository = droolsRuleRuntimeRepository;
     var ks = KieServices.Factory.get();
     var kContainer = ks.newKieContainer(ks.newReleaseId("org.trading", "kjar", "1.0-SNAPSHOT"));
     this.kieSession = kContainer.newKieSession("rules.trade-management.session");
@@ -59,6 +62,7 @@ public class DroolsService {
   // TODO will this always run before the first event is fired for kiesession? might need to do in constructor?
   @PostConstruct
   public void initialSetup() {
+    kieSession.addEventListener(new BfgRuleRuntimeEventListener(droolsRuleRuntimeRepository));
     startScanner(1000 * 30); // Check for updated rules every 30 seconds
     registerChannels();
     // Insert market info for each market into session
