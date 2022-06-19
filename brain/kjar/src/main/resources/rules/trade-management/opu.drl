@@ -1,13 +1,59 @@
 package rules.tradeManagement;
 
 import org.trading.model.*;
-import org.trading.event.*;
+import org.trading.event.*
+import org.trading.ChannelIds
+import org.trading.command.DeleteWorkingOrderCommand
+import org.trading.command.TradeResultCommand;
 
 dialect  "mvel"
 
-rule "Opu trigger"
+rule "BUY Position entry close SELL order"
     when
-      $o: Opu($e: epic) from entry-point "OPU"
+      Opu($e: epic, direction == "BUY", $l: level, isPositionEntry() == true) from entry-point "OPU"
+      $bo: Order(epic == $e, direction == "BUY")
+      $so: Order(epic == $e, direction == "SELL")
     then
-      System.out.println("DROOLS OPU");
+      insert(new Position($bo, $l))
+      delete($bo);
+      channels[ChannelIds.DELETE_WORKING_ORDER].send(new DeleteWorkingOrderCommand($so.getEpic()));
+end
+
+rule "SELL Position entry close BUY order"
+    when
+      Opu($e: epic, direction == "SELL", $l: level, isPositionEntry() == true) from entry-point "OPU"
+      $bo: Order(epic == $e, direction == "BUY")
+      $so: Order(epic == $e, direction == "SELL")
+    then
+      insert(new Position($so, $l))
+      channels[ChannelIds.DELETE_WORKING_ORDER].send(new DeleteWorkingOrderCommand($bo.getEpic()));
+      delete($so);
+end
+
+rule "Position entry when we only have BUY order"
+    when
+      Opu($e: epic, $l: level, isPositionEntry() == true) from entry-point "OPU"
+      $bo: Order(epic == $e, direction == "BUY")
+      not $so: Order(epic == $e, direction == "SELL")
+    then
+      delete($bo);
+      insert(new Position($bo, $l))
+end
+
+rule "Position entry when we only have SELL order"
+    when
+      Opu($e: epic, $l: level, isPositionEntry() == true) from entry-point "OPU"
+      not $bo: Order(epic == $e, direction == "BUY")
+      $so: Order(epic == $e, direction == "SELL")
+    then
+      delete($so);
+      insert(new Position($so, $l))
+end
+
+rule "Position exit"
+    when
+      Opu($e: epic, $d: direction, isPositionExit() == true) from entry-point "OPU"
+      $p: Position(epic == $e)
+    then
+      modify($p){setState("EXIT")}
 end

@@ -1,0 +1,32 @@
+package rules.tradeManagement;
+
+import org.trading.model.*;
+import org.trading.event.*
+import org.trading.ChannelIds
+import org.trading.command.DeleteWorkingOrderCommand;
+import java.util.List;
+
+dialect  "mvel"
+
+rule "If SELL rejected close BUY"
+    when
+      $so: Order($e: epic, direction == "SELL", state == "REJECTED")
+      $bo: Order(epic == $e, direction == "BUY")
+    then
+      channels[ChannelIds.DELETE_WORKING_ORDER].send(new DeleteWorkingOrderCommand($bo.getEpic()));
+end
+
+rule "If BUY rejected close SELL"
+    when
+      $bo: Order($e: epic, direction == "BUY")
+      $so: Order(epic == $e, direction == "SELL", state == "REJECTED")
+    then
+      channels[ChannelIds.DELETE_WORKING_ORDER].send(new DeleteWorkingOrderCommand($so.getEpic()));
+end
+
+rule "If there only is one order and that is rejected delete order from working memory"
+    when
+      $os: List(size == 1) from collect (Order($e: epic, direction == "BUY"))
+    then
+      delete($os.get(1));
+end

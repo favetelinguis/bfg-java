@@ -17,5 +17,5 @@ public class Opu extends StatusChecker {
   private String dealId;
   private String epic;
   private String dealReference;
-
+  private Double level;
 }

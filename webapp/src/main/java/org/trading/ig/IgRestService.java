@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
 import org.trading.ig.rest.dto.positions.otc.closeOTCPositionV1.CloseOTCPositionV1Request;
+import org.trading.ig.rest.dto.positions.otc.updateOTCPositionV2.UpdateOTCPositionV2Request;
 import org.trading.ig.rest.dto.prices.getPricesV3.GetPricesV3Response;
 import org.trading.ig.rest.dto.workingorders.otc.createOTCWorkingOrderV2.CreateOTCWorkingOrderV2Request;
 import org.trading.ig.rest.dto.workingorders.otc.deleteOTCWorkingOrderV2.DeleteOTCWorkingOrderV2Response;
@@ -47,6 +48,10 @@ public class IgRestService {
   public void updateOrder(String dealId) {
     var request = new UpdateOTCWorkingOrderV2Request();
 //    restAPI.updateOTCWorkingOrderV2(authContext.getConversationContext(), dealId, request);
+  }
+  public void updatePosition(String dealId) {
+    var request = new UpdateOTCPositionV2Request();
+//    restAPI.updateOTCPositionV2(authContext.getConversationContext(), dealId, request);
   }
   public void closePosition() {
     var request = new CloseOTCPositionV1Request();

@@ -24,6 +24,7 @@ import org.trading.command.ClosePositionCommand;
 import org.trading.command.CreateWorkingOrderCommand;
 import org.trading.command.DeleteWorkingOrderCommand;
 import org.trading.command.TradeResultCommand;
+import org.trading.command.UpdatePositionCommand;
 import org.trading.command.UpdateWorkingOrderCommand;
 import org.trading.event.AccountEquity;
 import org.trading.event.Atr;
@@ -130,6 +131,8 @@ public class DroolsService {
         ChannelIds.DELETE_WORKING_ORDER, (c) -> publisher.publishEvent((DeleteWorkingOrderCommand) c));
     kieSession.registerChannel(
         ChannelIds.UPDATE_WORKING_ORDER, (c) -> publisher.publishEvent((UpdateWorkingOrderCommand) c));
+    kieSession.registerChannel(
+        ChannelIds.UPDATE_POSITION, (c) -> publisher.publishEvent((UpdatePositionCommand) c));
     kieSession.registerChannel(
         ChannelIds.CLOSE_POSITION, (c) -> publisher.publishEvent((ClosePositionCommand) c));
     kieSession.registerChannel(

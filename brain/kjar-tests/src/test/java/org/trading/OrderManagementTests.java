@@ -30,8 +30,8 @@ public class OrderManagementTests {
   public void canCreateOrder() {
     var kieSession = kContainer.newKieSession("rules.trade-management.session");
     var openingRange = new OpeningRange("33", 3., 2.);
-    openingRange.setHigh(11.);
-    openingRange.setLow(10.);
+//    openingRange.setHigh(11.);
+//    openingRange.setLow(10.);
     kieSession.insert(openingRange);
     var numberFired = kieSession.fireAllRules();
     assertEquals(1, numberFired);

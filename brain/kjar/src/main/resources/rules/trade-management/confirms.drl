@@ -5,9 +5,72 @@ import org.trading.event.*;
 
 dialect  "mvel"
 
-rule "Confirms trigger"
+rule "Order created accepted"
     when
-      $c: Confirms($e: epic) from entry-point "CONFIRMS"
+      $c: Confirms($e: epic, $d: direction) from entry-point "CONFIRMS"
+      Boolean(booleanValue == true) from $c.isOrderCreatedSuccess()
+      $o: Order(epic == $e, direction == $d, state == "SENT")
     then
-      System.out.println("DROOLS CONFIRMS");
+      modify($o){setState("ACCEPTED")}
+end
+
+rule "Order created rejected"
+    when
+      $c: Confirms($e: epic, $d: direction) from entry-point "CONFIRMS"
+      Boolean(booleanValue == true) from $c.isOrderCreatedRejected()
+      $o: Order(epic == $e, direction == $d, state == "SENT")
+    then
+      modify($o){setState("REJECTED")}
+end
+
+rule "Order delete accepted"
+    when
+      $c: Confirms($e: epic, $d: direction, isOrderDeletedSuccess() == true) from entry-point "CONFIRMS"
+      $o: Order(epic == $e, direction == $d)
+    then
+      delete($o);
+end
+
+rule "Order delete rejected"
+    when
+      $c: Confirms($e: epic, $d: direction, isOrderDeletedRejected() == true) from entry-point "CONFIRMS"
+      $o: Order(epic == $e, direction == $d)
+    then
+      System.out.println("FAILURE TO DELETE ORDER");
+end
+
+// TODO this will be used when we risk adjust WO
+rule "Order updated accepted"
+    when
+      $c: Confirms($e: epic, $d: direction, isOrderUpdatedSuccess() == true) from entry-point "CONFIRMS"
+      $o: Order(epic == $e, direction == $d, state == "UPDATE_REQUESTED")
+    then
+      modify($o){setState("TRAILING_STOP_ADDED")}
+end
+
+// TODO this will be used when we risk adjust WO
+rule "Order update rejected"
+    when
+      $c: Confirms($e: epic, $d: direction, isOrderUpdatedRejected() == true) from entry-point "CONFIRMS"
+      $o: Order(epic == $e, direction == $d, state == "UPDATE_REQUESTED")
+    then
+      modify($o){setState("TRAILING_STOP_REJECTED")}
+      System.out.println("FAILURE TO UPDATE ORDER");
+end
+
+rule "Position updated accepted"
+    when
+      $c: Confirms($e: epic, $d: direction, isOrderUpdatedSuccess() == true) from entry-point "CONFIRMS"
+      $p: Position(epic == $e, order.direction == $d, state == "TRAILING_STOP_REQUESTED")
+    then
+      modify($p){setState("TRAILING_STOP_ADDED")}
+end
+
+rule "Position update rejected"
+    when
+      $c: Confirms($e: epic, $d: direction, isOrderUpdatedRejected() == true) from entry-point "CONFIRMS"
+      $p: Position(epic == $e, order.direction == $d, state == "TRAILING_STOP_REQUESTED")
+    then
+      modify($p){setState("TRAILING_STOP_REJECTED")}
+      System.out.println("FAILURE TO UPDATE ORDER");
 end

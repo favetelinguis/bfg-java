@@ -11,5 +11,7 @@ public class Order {
   String epic;
   String direction;
   String dealId;
+  Double wantedEntryPrice;
   String state;
+
 }

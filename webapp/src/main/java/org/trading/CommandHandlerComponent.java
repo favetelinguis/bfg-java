@@ -10,6 +10,7 @@ import org.trading.command.ClosePositionCommand;
 import org.trading.command.CreateWorkingOrderCommand;
 import org.trading.command.DeleteWorkingOrderCommand;
 import org.trading.command.TradeResultCommand;
+import org.trading.command.UpdatePositionCommand;
 import org.trading.command.UpdateWorkingOrderCommand;
 import org.trading.ig.IgRestService;
 import org.trading.repository.IgStreamRepository;
@@ -45,6 +46,12 @@ public class CommandHandlerComponent {
   public void updateWorkingOrder(UpdateWorkingOrderCommand command) {
     igRestService.updateOrder("dummy");
     log.info("Update working order for epic {}", command.getEpic());
+  }
+  @Async
+  @EventListener(UpdatePositionCommand.class)
+  public void updatePosition(UpdatePositionCommand command) {
+    igRestService.updatePosition("dummy");
+    log.info("Update position order for epic {}", command.getEpic());
   }
   @Async
   @EventListener(ClosePositionCommand.class)
