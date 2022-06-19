@@ -15,7 +15,7 @@ public class BfgProcessEventListener implements ProcessEventListener {
 
   @Override
   public void beforeProcessStarted(ProcessStartedEvent processStartedEvent) {
-    
+
   }
 
   @Override

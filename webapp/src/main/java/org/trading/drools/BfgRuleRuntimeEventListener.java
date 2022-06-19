@@ -19,21 +19,18 @@ public class BfgRuleRuntimeEventListener implements RuleRuntimeEventListener {
 
   @Override
   public void objectInserted(ObjectInsertedEvent objectInsertedEvent) {
-    log.info("RUN INSERT");
     var ruleName = objectInsertedEvent.getRule() != null ? objectInsertedEvent.getRule().getName() : "NORULE";
     repository.save(new DroolsRuleRuntimeEventEntity("insert", objectInsertedEvent.getObject(), ruleName, objectInsertedEvent.getFactHandle().toExternalForm()));
   }
 
   @Override
   public void objectUpdated(ObjectUpdatedEvent objectUpdatedEvent) {
-    log.info("RUN UPDATE");
     var ruleName = objectUpdatedEvent.getRule() != null ? objectUpdatedEvent.getRule().getName() : "NORULE";
     repository.save(new DroolsRuleRuntimeEventEntity("update", objectUpdatedEvent.getObject(), ruleName, objectUpdatedEvent.getFactHandle().toExternalForm()));
   }
 
   @Override
   public void objectDeleted(ObjectDeletedEvent objectDeletedEvent) {
-    log.info("RUN DELETE");
     var ruleName = objectDeletedEvent.getRule() != null ? objectDeletedEvent.getRule().getName() : "NORULE";
     repository.save(new DroolsRuleRuntimeEventEntity("delete", objectDeletedEvent.getOldObject(), ruleName, objectDeletedEvent.getFactHandle().toExternalForm()));
   }
