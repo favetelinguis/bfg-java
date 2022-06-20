@@ -5,9 +5,12 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import lombok.Data;
+import org.kie.api.definition.type.ClassReactive;
+import org.kie.api.definition.type.PropertyReactive;
 
 // TODO add validation to this class so when i read props it get validated
 @Data
+@PropertyReactive // Page 80
 public class MarketInfo {
   private String epic;
   private String expiry;

@@ -3,6 +3,7 @@ package org.trading.market;
 import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.trading.model.MarketInfo;
 
 /**
  * Opening time is the actual time the market opens without and delta.
@@ -10,7 +11,6 @@ import lombok.Data;
 @AllArgsConstructor
 @Data
 public class MarketOpen {
-  String epic;
+  MarketInfo marketInfo;
   LocalTime openingTime;
-  Long barsInOpeningRange;
 }

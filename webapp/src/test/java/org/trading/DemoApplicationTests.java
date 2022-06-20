@@ -68,7 +68,7 @@ class DemoApplicationTests {
 
 	@Test
 	void parser() {
-		var a = Double.parseDouble("13252");
+		var a = "".isEmpty() ? Double.parseDouble(""): -1.;
 		var b = 2;
 	}
 

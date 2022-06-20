@@ -41,7 +41,6 @@ class MarketCache {
     // First update Candle
     var maybeCompletedCandle = barCache.update(c.getEpic(), c.getUpdate());
     if (maybeCompletedCandle.isPresent()) {
-      log.info("Completed change for {} - {}", c.getEpic(), c.getUpdate());
       // If we get a completed change update the bar series and get atr
       var cache = marketStateMap.get(c.getEpic());
       cache.addBar(maybeCompletedCandle.get().getBar());

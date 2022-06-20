@@ -9,27 +9,37 @@ import org.kie.api.event.rule.MatchCancelledEvent;
 import org.kie.api.event.rule.MatchCreatedEvent;
 import org.kie.api.event.rule.RuleFlowGroupActivatedEvent;
 import org.kie.api.event.rule.RuleFlowGroupDeactivatedEvent;
+import org.trading.repository.DroolsAgendaEventEntity;
+import org.trading.repository.DroolsAgendaRepository;
+import org.trading.repository.DroolsRuleRuntimeRepository;
 
 public class BfgAgendaEventListener implements AgendaEventListener {
 
+  private final DroolsAgendaRepository repository;
+
+  public BfgAgendaEventListener(DroolsAgendaRepository repository) {
+    this.repository = repository;
+  }
   @Override
   public void matchCreated(MatchCreatedEvent matchCreatedEvent) {
-
+    repository.save(new DroolsAgendaEventEntity("matchCreated", matchCreatedEvent.getMatch().getRule().getName()));
   }
 
   @Override
   public void matchCancelled(MatchCancelledEvent matchCancelledEvent) {
 
+    repository.save(new DroolsAgendaEventEntity("matchCancelled", matchCancelledEvent.getMatch().getRule().getName()));
   }
 
   @Override
   public void beforeMatchFired(BeforeMatchFiredEvent beforeMatchFiredEvent) {
 
+    repository.save(new DroolsAgendaEventEntity("beforeMatchFired", beforeMatchFiredEvent.getMatch().getRule().getName()));
   }
 
   @Override
   public void afterMatchFired(AfterMatchFiredEvent afterMatchFiredEvent) {
-
+    repository.save(new DroolsAgendaEventEntity("afterMatchFired", afterMatchFiredEvent.getMatch().getRule().getName()));
   }
 
   @Override

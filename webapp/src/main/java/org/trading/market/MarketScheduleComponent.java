@@ -51,7 +51,7 @@ public class MarketScheduleComponent {
           .filter(m -> !m.getNonTradingDays().contains(today)) // Exclude market if it is not trading today
           .forEach( marketInfo -> {
             if (isOpenNow(marketInfo)) {
-              sendOpenEvent(marketInfo.getEpic(), marketInfo.getMarketZone().equals("EU") ? EU_OPEN : US_OPEN, marketInfo.getBarsInOpeningRange());
+              sendOpenEvent(marketInfo, marketInfo.getMarketZone().equals("EU") ? EU_OPEN : US_OPEN);
             }
           });
     }
@@ -65,7 +65,7 @@ public class MarketScheduleComponent {
         .filter(MarketInfo::isEu)
         .filter(m -> !m.getNonTradingDays().contains(today))
         .forEach( marketInfo -> {
-          sendOpenEvent(marketInfo.getEpic(), EU_OPEN, marketInfo.getBarsInOpeningRange());
+          sendOpenEvent(marketInfo, EU_OPEN);
         });
   }
 
@@ -86,7 +86,7 @@ public class MarketScheduleComponent {
         .filter(MarketInfo::isUs)
         .filter(m -> !m.getNonTradingDays().contains(today))
         .forEach( marketInfo -> {
-          sendOpenEvent(marketInfo.getEpic(), US_OPEN, marketInfo.getBarsInOpeningRange());
+          sendOpenEvent(marketInfo, US_OPEN);
         });
   }
   @Scheduled(cron = "0 55 21 * * 1-5")
@@ -100,8 +100,8 @@ public class MarketScheduleComponent {
         });
   }
 
-  private void sendOpenEvent(String epic, LocalTime openTime, Long barsInOpeningRange) {
-    publisher.publishEvent(new MarketOpen(epic, openTime, barsInOpeningRange));
+  private void sendOpenEvent(MarketInfo marketInfo, LocalTime openTime) {
+    publisher.publishEvent(new MarketOpen(marketInfo, openTime));
   }
   private void sendCloseEvent(String epic) {
     publisher.publishEvent(new MarketClose(epic));

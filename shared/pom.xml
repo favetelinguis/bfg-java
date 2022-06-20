@@ -7,10 +7,10 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>domain</artifactId>
+  <artifactId>shared</artifactId>
   <packaging>jar</packaging>
 
-  <name>domain</name>
+  <name>shared</name>
 
   <dependencies>
     <dependency>

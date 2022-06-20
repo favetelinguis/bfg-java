@@ -6,13 +6,14 @@ import org.kie.api.definition.type.Expires;
 import org.kie.api.definition.type.Role;
 import org.kie.api.definition.type.Role.Type;
 import org.trading.SystemProperties;
+import org.trading.model.AccountEquity;
 import org.trading.model.MarketInfo;
 
 @AllArgsConstructor
 @Data
 @Role(Type.EVENT)
 @Expires("5s")
-public class Atr extends SystemProperties {
+public class AtrEvent extends SystemProperties {
   String epic;
   Double level;
 

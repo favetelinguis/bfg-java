@@ -9,68 +9,11 @@ import org.trading.command.UpdateWorkingOrderCommand
 
 dialect  "mvel"
 
-// TODO maybe we should have an agenda-group here so we can limit MidPrice to only trigger the rueles in this file and not all rules
-rule "Open a BUY order when price over openingen range high"
+rule "Update latest price for market"
     when
-      $mp: MidPrice($e: epic) from entry-point "MID_PRICE"
-      $openingRange: OpeningRange(epic == $e, $target: midHigh)
-      not Position(epic == $e)
-      not Order(epic == $e, direction == "BUY")
-      $atr: Atr(epic == $e)
-      Boolean(booleanValue == true) from $mp.isOver($openingRange, $atr)
+      MidPriceEvent($e: epic, $l: level, $sp: getSpread()) from entry-point "MID_PRICE"
+      $sd: SystemData(epic == $e)
+      AccountEquity()
     then
-      insert(new Order($e, "BUY", "dealid", $target, "SENT"));
-      channels[ChannelIds.CREATE_WORKING_ORDER].send(new CreateWorkingOrderCommand($e));
-end
-
-rule "Open a SELL order when price under openingen range low"
-    when
-      $mp: MidPrice($e: epic) from entry-point "MID_PRICE"
-      $openingRange: OpeningRange(epic == $e, $target: midLow)
-      not Position(epic == $e)
-      not Order(epic == $e, direction == "SELL")
-      $atr: Atr(epic == $e)
-      Boolean(booleanValue == true) from $mp.isUnder($openingRange, $atr)
-    then
-      insert(new Order($e, "SELL", "dealid", $target, "SENT"));
-      channels[ChannelIds.CREATE_WORKING_ORDER].send(new CreateWorkingOrderCommand($e));
-end
-
-rule "Open a SELL order when price inside opening range and opening range is large enogh"
-    when
-      $mp: MidPrice($e: epic) from entry-point "MID_PRICE"
-      $atr: Atr(epic == $e)
-      $openingRange: OpeningRange(epic == $e, $target: midHigh, isLargeEnough($atr))
-      not Position(epic == $e)
-      not Order(epic == $e, direction == "SELL")
-      Boolean(booleanValue == true) from $mp.isInside($openingRange, $atr)
-    then
-      insert(new Order($e, "SELL", "dealid", $target, "SENT"));
-      channels[ChannelIds.CREATE_WORKING_ORDER].send(new CreateWorkingOrderCommand($e));
-end
-
-rule "Open a BUY order when price inside opening range and opening range is large enogh"
-    when
-      $mp: MidPrice($e: epic) from entry-point "MID_PRICE"
-      $atr: Atr(epic == $e)
-      $openingRange: OpeningRange(epic == $e, $target: midLow, isLargeEnough($atr))
-      not Position(epic == $e)
-      not Order(epic == $e, direction == "BUY")
-      Boolean(booleanValue == true) from $mp.isInside($openingRange, $atr)
-    then
-      insert(new Order($e, "BUY", "dealid", $target, "SENT"));
-      channels[ChannelIds.CREATE_WORKING_ORDER].send(new CreateWorkingOrderCommand($e));
-end
-
-rule "When position is entered and in profit activate trailing stop"
-  when
-    $mp: MidPrice($e: epic, $l: level) from entry-point "MID_PRICE"
-    $p: Position(epic == $e, state == "CREATED", isInProfit($l))
-  then
-      modify($p){setState("TRAILING_STOP_REQUESTED")}
-      channels[ChannelIds.UPDATE_POSITION].send(new UpdateWorkingOrderCommand($e));
-end
-
-query "Get Last 5min mid prices"
-  $mp: MidPrice() over window:time(5m) from entry-point "MID_PRICE"
+      modify($sd){setCurrentMidPrice($l), setCurrentSpread($sp)}
 end

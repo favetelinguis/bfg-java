@@ -5,22 +5,21 @@ import org.trading.event.*;
 
 dialect  "mvel"
 
-rule "Account equity trigger first time for account"
+rule "Account equity first insert"
     when
-      $equity: AccountEquity($a: account, $e: equity) from entry-point "ACCOUNT_EQUITY"
-      not AccountEquity(account== $a)
+      AccountEquityEvent($account: account, $equity: equity) from entry-point "ACCOUNT_EQUITY"
+      not AccountEquity()
     then
-      System.out.println("Initial account equity for " + $a + " with level " + $e);
-      insert($equity);
+      insert(new AccountEquity($account, $equity));
+      System.out.println("Account equity first insert " + $equity + " for " + $account);
 end
 
-rule "Update AccountEquity for account"
+// Dont want to trigger any rules when I update account
+rule "Account equity change"
     when
-      AccountEquity($a: account, $e: equity) from entry-point "ACCOUNT_EQUITY"
-      $equity: AccountEquity(account== $a)
+      AccountEquityEvent($account: account, $equity: equity) from entry-point "ACCOUNT_EQUITY"
+      $a: AccountEquity(account == $account)
     then
-      System.out.println("Update account equity for " + $a + " with level " + $e);
-      modify($equity){setEquity($e)}
+      $a.setEquity($equity);
+      System.out.println("Account equity updated with level " + $equity + " for " + $account);
 end
-
-// TODO when eqity for account change do risk adjustment in open orders

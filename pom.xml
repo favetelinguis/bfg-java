@@ -41,7 +41,7 @@
       </dependency>
       <dependency>
         <groupId>org.trading</groupId>
-        <artifactId>domain</artifactId>
+        <artifactId>shared</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

@@ -11,19 +11,19 @@ import org.trading.SystemProperties;
 @Data
 @Role(Type.EVENT)
 @Expires("5s")
-public class MidPrice extends SystemProperties {
+public class MidPriceEvent extends SystemProperties {
   String epic;
   Double level;
   Double spread;
 
-  public boolean isOver(OpeningRange openingRange, Atr atr) {
+  public boolean isOver(OpeningRange openingRange, AtrEvent atr) {
     return level > (openingRange.getMidHigh() + (bufferMultipleOfAtr * atr.getLevel()));
 
   }
-  public boolean isUnder(OpeningRange openingRange, Atr atr) {
+  public boolean isUnder(OpeningRange openingRange, AtrEvent atr) {
     return level < (openingRange.getMidLow() - (bufferMultipleOfAtr * atr.getLevel()));
   }
-  public boolean isInside(OpeningRange openingRange, Atr atr) {
+  public boolean isInside(OpeningRange openingRange, AtrEvent atr) {
     return !isOver(openingRange, atr) && !isUnder(openingRange, atr);
   }
 }

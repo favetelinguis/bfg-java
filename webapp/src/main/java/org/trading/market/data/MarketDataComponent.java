@@ -15,15 +15,16 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.num.DecimalNum;
-import org.trading.event.Atr;
+import org.trading.event.AtrEvent;
 import org.trading.event.MarketClose;
-import org.trading.event.MidPrice;
+import org.trading.event.MidPriceEvent;
 import org.trading.event.OpeningRange;
 import org.trading.ig.IgRestService;
 import org.trading.ig.rest.dto.prices.getPricesV3.GetPricesV3Response;
 import org.trading.ig.rest.dto.prices.getPricesV3.PricesItem;
 import org.trading.market.MarketOpen;
 import org.trading.market.data.MarketCache.MarketState;
+import org.trading.event.SystemData;
 
 @Slf4j
 @Component
@@ -45,21 +46,21 @@ class MarketDataComponent {
   // TODO check this when running before open, do i get exactly from 9:00 to 9:14 and the first candle update is 9:15???
   @Async
   @EventListener(MarketOpen.class)
-  void backfill(MarketOpen marketOpen) {
+  public void backfill(MarketOpen marketOpen) {
     var end = LocalDateTime.now().withSecond(0).minusMinutes(1);
     var start = end.minusMinutes(14); // Hardcoded since we know i need 14 periods
     try {
-      var response = igRestService.getData(marketOpen.getEpic(), start, end);
+      var response = igRestService.getData(marketOpen.getMarketInfo().getEpic(), start, end);
       log.info("Backfill has {} items", response.getPrices().size());
       var baseBars = createBaseBars(response.getPrices());
-      var cache = new MarketState(marketOpen.getEpic());
+      var cache = new MarketState(marketOpen.getMarketInfo().getEpic());
       // Important baseBars is sorted oldest to newest I think it cant handle sorting
       for (var b : baseBars) {
         cache.addBar(b);
       }
       marketCache.init(cache);
     } catch (Exception e) {
-      log.error("Failed backfilling data for epic {}", marketOpen.getEpic(), e);
+      log.error("Failed backfilling data for epic {}", marketOpen.getMarketInfo().getEpic(), e);
     }
   }
 
@@ -68,24 +69,28 @@ class MarketDataComponent {
   // is always subscribed.
   // This will do nothing for epics until we have a backfill that has initiated the cache with epic.
   @EventListener(BarUpdate.class)
-  void updateBarSeriesAndPublishAtr(BarUpdate bar) {
+  public void updateBarSeriesAndPublishAtr(BarUpdate bar) {
     if (marketCache.containsEpic(bar.getEpic())) {
       // Send mid price for every market that is trading atm if this update change bid and ask
       if (bar.getUpdate().containsKey("OFR_CLOSE") && bar.getUpdate().containsKey("BID_CLOSE")) {
-        var askClose = Double.parseDouble(bar.getUpdate().get("OFR_CLOSE"));
-        var bidClose = Double.parseDouble(bar.getUpdate().get("BID_CLOSE"));
-        publisher.publishEvent(new MidPrice(bar.getEpic(), (askClose + bidClose) / 2, askClose - bidClose));
+        try { // Ibland kan OFR_CLOSE eller BID_CLOSE vara tom string then this will fail with excpeion in parser
+          var askClose = Double.parseDouble(bar.getUpdate().get("OFR_CLOSE"));
+          var bidClose = Double.parseDouble(bar.getUpdate().get("BID_CLOSE"));
+          publisher.publishEvent(new MidPriceEvent(bar.getEpic(), (askClose + bidClose) / 2, askClose - bidClose));
+        } catch (Exception e) {
+          log.error("Failed to publish MidPrice", e);
+        }
       }
       var maybeAtr = marketCache.updateAndGetAtr(bar);
       if (maybeAtr.isPresent()) {
-        publisher.publishEvent(new Atr(bar.getEpic(), maybeAtr.get()));
+        publisher.publishEvent(new AtrEvent(bar.getEpic(), maybeAtr.get()));
       }
     }
   }
 
   // When the market close remove it from the cache so there will be no new candle updates for it
   @EventListener(MarketClose.class)
-  void removeMarket(MarketClose marketClose) {
+  public void removeMarket(MarketClose marketClose) {
     var market = marketCache.remove(marketClose.getEpic());
     if (market == null) {
       log.info("Trying to remove {} from market cache since its closed but could not find the market.", marketClose.getEpic());
@@ -97,14 +102,15 @@ class MarketDataComponent {
 
   @Async
   @EventListener(MarketOpen.class)
-  void getOpeningRange(MarketOpen marketOpen) {
+  public void getOpeningRange(MarketOpen marketOpen) {
     try {
       var start = LocalDate.now().atTime(marketOpen.getOpeningTime());
-      var end = start.plusMinutes(marketOpen.getBarsInOpeningRange() - 1); // subtract 1 since end time is excluded
-      var result = igRestService.getData(marketOpen.getEpic(), start, end);
-      publisher.publishEvent(convertPricesToOpeningRange(marketOpen.getEpic(), result));
+      var end = start.plusMinutes(marketOpen.getMarketInfo().getBarsInOpeningRange() - 1); // subtract 1 since end time is excluded
+      var result = igRestService.getData(marketOpen.getMarketInfo().getEpic(), start, end);
+      var openingRange = convertPricesToOpeningRange(marketOpen.getMarketInfo().getEpic(), result);
+      publisher.publishEvent(new SystemData(marketOpen.getMarketInfo().getEpic(), marketOpen.getMarketInfo(), openingRange));
     } catch (Exception e) {
-      log.error("Failed to get opening range for {}", marketOpen.getEpic(), e);
+      log.error("Failed to get opening range for {}", marketOpen.getMarketInfo().getEpic(), e);
     }
   }
 

@@ -14,7 +14,7 @@ import org.trading.SystemProperties;
 @AllArgsConstructor
 @Data
 @Role(Type.EVENT)
-@Expires("5s")
+@Expires("9h")
 public class OpeningRange extends SystemProperties {
   String epic;
   Double midHigh;
@@ -24,7 +24,7 @@ public class OpeningRange extends SystemProperties {
     return midHigh - midLow;
   }
 
-  public boolean isLargeEnough(Atr atr) {
+  public boolean isLargeEnough(AtrEvent atr) {
     return pipsInOpeningRange() >= (atr.getLevel() * minAtrMultipleForOpeningRange);
   }
 }

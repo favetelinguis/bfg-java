@@ -18,7 +18,7 @@ end
 rule "Cleanup atr when market close"
     when
       MarketClose($e: epic) from entry-point "MARKET_CLOSE"
-      $atr: Atr(epic == $e)
+      $atr: AtrEvent(epic == $e)
     then
       System.out.println("Cleanup ATR at close for " + $e);
       delete($atr);

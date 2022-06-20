@@ -15,8 +15,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.trading.event.AccountEquityEvent;
 import org.trading.market.MarketProps;
-import org.trading.event.AccountEquity;
 import org.trading.event.Confirms;
 import org.trading.event.Opu;
 import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
@@ -81,9 +81,9 @@ public class IgStreamService {
           } catch (Exception e) {
             log.error("Failure ", e);
           }
-          var equity = update.get("EQUITY");
+          var equity = update.get("FUNDS");
           if (equity != null) {
-            publisher.publishEvent(new AccountEquity(account, Double.parseDouble(equity)));
+            publisher.publishEvent(new AccountEquityEvent(account, Double.parseDouble(equity)));
           }
         }));
   }
@@ -105,17 +105,6 @@ public class IgStreamService {
             }
           }
         }));
-  }
-
-  // Check if this confirs is older then 10seconds then its assumed to be an old confirms.
-  // The confirms subscripts always sends the last confirms when staring so I need to filter it here.
-  // I have tried to disable snapshot in subscription but to no affect.
-  private boolean isOld(Confirms confirms) throws ParseException {
-    var dtf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    var utcNow = Instant.now();
-    var confirmsUpdate = confirms.getDate().replace("T", " ");
-    var utcConfirmsUpdate = dtf.parse(confirmsUpdate).toInstant();
-    return utcConfirmsUpdate.plusSeconds(10).isBefore(utcNow);
   }
 
   private void subscribeToOPU() {
@@ -162,6 +151,18 @@ public class IgStreamService {
       publisher.publishEvent(new BarUpdate(epic, update));
     }));
   }
+
+  // Check if this confirs is older then 10seconds then its assumed to be an old confirms.
+  // The confirms subscripts always sends the last confirms when staring so I need to filter it here.
+  // I have tried to disable snapshot in subscription but to no affect.
+  private boolean isOld(Confirms confirms) throws ParseException {
+    var dtf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    var utcNow = Instant.now();
+    var confirmsUpdate = confirms.getDate().replace("T", " ");
+    var utcConfirmsUpdate = dtf.parse(confirmsUpdate).toInstant();
+    return utcConfirmsUpdate.plusSeconds(10).isBefore(utcNow);
+  }
+
 
 }
 

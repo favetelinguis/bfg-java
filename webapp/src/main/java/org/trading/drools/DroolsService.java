@@ -5,8 +5,8 @@ import static org.trading.EntryPointIds.ATR;
 import static org.trading.EntryPointIds.CONFIRMS;
 import static org.trading.EntryPointIds.MARKET_CLOSE;
 import static org.trading.EntryPointIds.MID_PRICE;
-import static org.trading.EntryPointIds.OPENING_RANGE;
 import static org.trading.EntryPointIds.OPU;
+import static org.trading.EntryPointIds.SYSTEM_DATA;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,15 +26,16 @@ import org.trading.command.DeleteWorkingOrderCommand;
 import org.trading.command.TradeResultCommand;
 import org.trading.command.UpdatePositionCommand;
 import org.trading.command.UpdateWorkingOrderCommand;
-import org.trading.event.AccountEquity;
-import org.trading.event.Atr;
+import org.trading.event.AccountEquityEvent;
+import org.trading.event.MidPriceEvent;
+import org.trading.event.AtrEvent;
 import org.trading.event.Confirms;
 import org.trading.event.MarketClose;
-import org.trading.event.MidPrice;
 import org.trading.event.OpeningRange;
 import org.trading.event.Opu;
 import org.trading.ig.IgRestService;
-import org.trading.market.MarketProps;
+import org.trading.event.SystemData;
+import org.trading.repository.DroolsAgendaRepository;
 import org.trading.repository.DroolsRuleRuntimeRepository;
 
 @Service
@@ -44,15 +45,15 @@ public class DroolsService {
   private final KieScanner kieScanner;
   private final IgRestService igRestService;
   private final ApplicationEventPublisher publisher;
-  private final MarketProps marketProps;
   private final DroolsRuleRuntimeRepository droolsRuleRuntimeRepository;
+  private final DroolsAgendaRepository droolsAgendaRepository;
 
   @Autowired
-  DroolsService(IgRestService igRestService, ApplicationEventPublisher publisher, MarketProps marketProps, DroolsRuleRuntimeRepository droolsRuleRuntimeRepository) {
+  DroolsService(IgRestService igRestService, ApplicationEventPublisher publisher, DroolsRuleRuntimeRepository droolsRuleRuntimeRepository, DroolsAgendaRepository droolsAgendaRepository) {
     this.igRestService = igRestService;
     this.publisher = publisher;
-    this.marketProps = marketProps;
     this.droolsRuleRuntimeRepository = droolsRuleRuntimeRepository;
+    this.droolsAgendaRepository = droolsAgendaRepository;
     var ks = KieServices.Factory.get();
     var kContainer = ks.newKieContainer(ks.newReleaseId("org.trading", "kjar", "1.0-SNAPSHOT"));
     this.kieSession = kContainer.newKieSession("rules.trade-management.session");
@@ -63,12 +64,9 @@ public class DroolsService {
   @PostConstruct
   public void initialSetup() {
     kieSession.addEventListener(new BfgRuleRuntimeEventListener(droolsRuleRuntimeRepository));
+    kieSession.addEventListener(new BfgAgendaEventListener(droolsAgendaRepository));
     startScanner(1000 * 30); // Check for updated rules every 30 seconds
     registerChannels();
-    // Insert market info for each market into session
-    for (var m : marketProps.getEpics()) {
-      kieSession.insert(m);
-    }
   }
 
   public void stopScanner() {
@@ -79,47 +77,49 @@ public class DroolsService {
     kieScanner.start(interval);
   }
 
-  @EventListener(MidPrice.class)
-  public void updateBid(MidPrice bid) {
-    triggerKieSessionForEvent(MID_PRICE, bid);
+  @EventListener(MidPriceEvent.class)
+  public void updateBid(MidPriceEvent event) {
+    triggerKieSessionForEvent(MID_PRICE, event, true);
   }
 
-  @EventListener(AccountEquity.class)
-  public void updateEquity(AccountEquity event) {
-    triggerKieSessionForEvent(ACCOUNT_EQUITY, event);
+  @EventListener(AccountEquityEvent.class)
+  public void updateEquity(AccountEquityEvent event) {
+    triggerKieSessionForEvent(ACCOUNT_EQUITY, event, false);
   }
 
   @EventListener(Opu.class)
   public void updateOpu(Opu event) {
-    triggerKieSessionForEvent(OPU, event);
+    triggerKieSessionForEvent(OPU, event, true);
   }
 
   @EventListener(Confirms.class)
   public void updateConfirms(Confirms event) {
-    triggerKieSessionForEvent(CONFIRMS, event);
+    triggerKieSessionForEvent(CONFIRMS, event, true);
   }
 
-  @EventListener(OpeningRange.class)
-  public void updateOpeningRange(OpeningRange event) {
-    triggerKieSessionForEvent(OPENING_RANGE, event);
+  @EventListener(SystemData.class)
+  public void updateSystemData(SystemData event) {
+    triggerKieSessionForEvent(SYSTEM_DATA, event, false);
   }
 
   @EventListener(MarketClose.class)
   public void updateMarketClose(MarketClose event) {
-    triggerKieSessionForEvent(MARKET_CLOSE, event);
+    triggerKieSessionForEvent(MARKET_CLOSE, event, true);
   }
 
-  @EventListener(Atr.class)
-  public void updateAtr(Atr event) {
-    triggerKieSessionForEvent(ATR, event);
+  @EventListener(AtrEvent.class)
+  public void updateAtr(AtrEvent event) {
+    triggerKieSessionForEvent(ATR, event, false);
   }
 
-  private void triggerKieSessionForEvent(String entryPoint, Object event) {
+  private void triggerKieSessionForEvent(String entryPoint, Object event, boolean fireAllRules) {
     var entry = kieSession.getEntryPoint(entryPoint);
     if (entryPoint != null) {
       try {
         entry.insert(event);
-        kieSession.fireAllRules();
+        if (fireAllRules) {
+          kieSession.fireAllRules();
+        }
       } catch (Exception e) {
         log.error("Failure executing rules", e);
       }
@@ -143,12 +143,12 @@ public class DroolsService {
         ChannelIds.TRADE_RESULT, (c) -> publisher.publishEvent((TradeResultCommand) c));
   }
 
-  public List<MidPrice> queryGetMidPrices() {
+  public List<MidPriceEvent> queryGetMidPrices() {
     var results = kieSession.getQueryResults("Get Last 5min mid prices");
     log.warn("NUMBER OF RESULTS ---------------------- {}", results.size());
-    var midPrices = new ArrayList<MidPrice>();
+    var midPrices = new ArrayList<MidPriceEvent>();
     for (var result : results) {
-      var bid = (MidPrice) result.get("$mp");
+      var bid = (MidPriceEvent) result.get("$mp");
       midPrices.add(bid);
     }
     return midPrices;

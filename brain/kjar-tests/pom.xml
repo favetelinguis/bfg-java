@@ -15,7 +15,12 @@
   <dependencies>
     <dependency>
       <groupId>org.trading</groupId>
-      <artifactId>domain</artifactId>
+      <artifactId>shared</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.trading</groupId>
+      <artifactId>kjar</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -5,22 +5,13 @@ import org.trading.event.*
 
 dialect  "mvel"
 
-rule "Atr trigger first time for market"
+rule "Update ATR for Market"
     when
-      $atr: Atr($e: epic, $l: level) from entry-point "ATR"
-      not Atr(epic == $e)
+      AtrEvent($e: epic, $l: level) from entry-point "ATR"
+      $sd: SystemData(epic == $e)
     then
-      System.out.println("Initial ATR for " + $e + " with level " + $l);
-      insert($atr);
-end
-
-rule "Update ATR for market"
-    when
-      Atr($e: epic, $l: level) from entry-point "ATR"
-      $atr: Atr(epic == $e)
-    then
-      System.out.println("Update ATR for " + $e + " with level " + $l);
-      modify($atr){setLevel($l)}
+      modify($sd){setCurrentAtr($l)}
 end
 
 // TODO when ATR for market change and there is an order for that market, risk adjust it
+// I should subscribe to only changes on ATR field in MarketInfo for this, chekc book how to do that

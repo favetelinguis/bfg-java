@@ -57,41 +57,41 @@ class BarCache {
 
     Optional<CompleteCandle> mergeAndReturnIfComplete(Map<String, String> newCandle) {
       for (Map.Entry<String, String> entry : newCandle.entrySet()) {
-        switch (entry.getKey()) {
-          case "OFR_OPEN":
-            this.setAskOpen(Double.parseDouble(entry.getValue()));
-            break;
-          case "OFR_HIGH":
-            this.setAskHigh(Double.parseDouble(entry.getValue()));
-            break;
-          case "OFR_LOW":
-            this.setAskLow(Double.parseDouble(entry.getValue()));
-            break;
-          case "OFR_CLOSE":
-            this.setAskClose(Double.parseDouble(entry.getValue()));
-            break;
-          case "BID_OPEN":
-            this.setBidOpen(Double.parseDouble(entry.getValue()));
-            break;
-          case "BID_HIGH":
-            this.setBidHigh(Double.parseDouble(entry.getValue()));
-            break;
-          case "BID_LOW":
-            this.setBidLow(Double.parseDouble(entry.getValue()));
-            break;
-          case "BID_CLOSE":
-            this.setBidClose(Double.parseDouble(entry.getValue()));
-            break;
-          case "CONS_TICK_COUNT":
-            this.setNumberTicks(Long.parseLong(entry.getValue()));
-            break;
-          case "UTM":
-            log.warn("DATEUPDATE for {}: {}",entry.getKey() , Instant.ofEpochMilli(Long.parseLong(entry.getValue())).atZone(ZoneId.of("Europe/Stockholm")).format(
-                DateTimeFormatter.ISO_DATE_TIME));
-            this.setUpdateTime(Instant.ofEpochMilli(Long.parseLong(entry.getValue())));
-            break;
-          default:
-            break;
+        if (!entry.getValue().isBlank()) {
+          switch (entry.getKey()) {
+            case "OFR_OPEN":
+              this.setAskOpen(Double.parseDouble(entry.getValue()));
+              break;
+            case "OFR_HIGH":
+              this.setAskHigh(Double.parseDouble(entry.getValue()));
+              break;
+            case "OFR_LOW":
+              this.setAskLow(Double.parseDouble(entry.getValue()));
+              break;
+            case "OFR_CLOSE":
+              this.setAskClose(Double.parseDouble(entry.getValue()));
+              break;
+            case "BID_OPEN":
+              this.setBidOpen(Double.parseDouble(entry.getValue()));
+              break;
+            case "BID_HIGH":
+              this.setBidHigh(Double.parseDouble(entry.getValue()));
+              break;
+            case "BID_LOW":
+              this.setBidLow(Double.parseDouble(entry.getValue()));
+              break;
+            case "BID_CLOSE":
+              this.setBidClose(Double.parseDouble(entry.getValue()));
+              break;
+            case "CONS_TICK_COUNT":
+              this.setNumberTicks(Long.parseLong(entry.getValue()));
+              break;
+            case "UTM":
+              this.setUpdateTime(Instant.ofEpochMilli(Long.parseLong(entry.getValue())));
+              break;
+            default:
+              break;
+          }
         }
       }
       var maybeHasConsUpdate = newCandle.get("CONS_END") ;
