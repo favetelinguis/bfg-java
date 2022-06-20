@@ -38,7 +38,7 @@ import org.trading.event.SystemData;
 import org.trading.repository.DroolsAgendaRepository;
 import org.trading.repository.DroolsRuleRuntimeRepository;
 
-@Service
+//@Service
 @Slf4j
 public class DroolsService {
   private final KieSession kieSession;
@@ -77,37 +77,37 @@ public class DroolsService {
     kieScanner.start(interval);
   }
 
-  @EventListener(MidPriceEvent.class)
+//  @EventListener(MidPriceEvent.class)
   public void updateBid(MidPriceEvent event) {
     triggerKieSessionForEvent(MID_PRICE, event, true);
   }
 
-  @EventListener(AccountEquityEvent.class)
+//  @EventListener(AccountEquityEvent.class)
   public void updateEquity(AccountEquityEvent event) {
     triggerKieSessionForEvent(ACCOUNT_EQUITY, event, false);
   }
 
-  @EventListener(Opu.class)
+//  @EventListener(Opu.class)
   public void updateOpu(Opu event) {
     triggerKieSessionForEvent(OPU, event, true);
   }
 
-  @EventListener(Confirms.class)
+//  @EventListener(Confirms.class)
   public void updateConfirms(Confirms event) {
     triggerKieSessionForEvent(CONFIRMS, event, true);
   }
 
-  @EventListener(SystemData.class)
+//  @EventListener(SystemData.class)
   public void updateSystemData(SystemData event) {
     triggerKieSessionForEvent(SYSTEM_DATA, event, false);
   }
 
-  @EventListener(MarketClose.class)
+//  @EventListener(MarketClose.class)
   public void updateMarketClose(MarketClose event) {
     triggerKieSessionForEvent(MARKET_CLOSE, event, true);
   }
 
-  @EventListener(AtrEvent.class)
+//  @EventListener(AtrEvent.class)
   public void updateAtr(AtrEvent event) {
     triggerKieSessionForEvent(ATR, event, false);
   }

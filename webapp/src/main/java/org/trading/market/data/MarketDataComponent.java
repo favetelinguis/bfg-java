@@ -51,14 +51,17 @@ class MarketDataComponent {
     var start = end.minusMinutes(14); // Hardcoded since we know i need 14 periods
     try {
       var response = igRestService.getData(marketOpen.getMarketInfo().getEpic(), start, end);
-      log.info("Backfill has {} items", response.getPrices().size());
-      var baseBars = createBaseBars(response.getPrices());
-      var cache = new MarketState(marketOpen.getMarketInfo().getEpic());
-      // Important baseBars is sorted oldest to newest I think it cant handle sorting
-      for (var b : baseBars) {
-        cache.addBar(b);
+      if (response.getPrices().size() == 14) {
+        var baseBars = createBaseBars(response.getPrices());
+        var cache = new MarketState(marketOpen.getMarketInfo().getEpic());
+        // Important baseBars is sorted oldest to newest I think it cant handle sorting
+        for (var b : baseBars) {
+          cache.addBar(b);
+        }
+        marketCache.init(cache);
+      } else {
+        throw new IllegalArgumentException("To few items to backfill, expected 14 got " + response.getPrices().size());
       }
-      marketCache.init(cache);
     } catch (Exception e) {
       log.error("Failed backfilling data for epic {}", marketOpen.getMarketInfo().getEpic(), e);
     }
@@ -108,7 +111,7 @@ class MarketDataComponent {
       var end = start.plusMinutes(marketOpen.getMarketInfo().getBarsInOpeningRange() - 1); // subtract 1 since end time is excluded
       var result = igRestService.getData(marketOpen.getMarketInfo().getEpic(), start, end);
       var openingRange = convertPricesToOpeningRange(marketOpen.getMarketInfo().getEpic(), result);
-      publisher.publishEvent(new SystemData(marketOpen.getMarketInfo().getEpic(), marketOpen.getMarketInfo(), openingRange));
+      publisher.publishEvent(new SystemData(marketOpen.getMarketInfo().getEpic(), marketOpen.getMarketInfo(), openingRange, publisher::publishEvent));
     } catch (Exception e) {
       log.error("Failed to get opening range for {}", marketOpen.getMarketInfo().getEpic(), e);
     }

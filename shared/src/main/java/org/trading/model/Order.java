@@ -5,13 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class Order {
-  String epic;
-  String direction;
-  String dealId;
-  Double wantedEntryPrice;
-  String state;
+  private String direction;
+  private String dealId;
+  private Double wantedEntryPrice;
 
+  public Order(String direction) {
+    this.direction = direction;
+  }
 }

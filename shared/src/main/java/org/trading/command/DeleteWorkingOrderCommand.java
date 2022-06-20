@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class DeleteWorkingOrderCommand {
+public class DeleteWorkingOrderCommand implements Command {
   String epic;
 }

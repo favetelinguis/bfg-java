@@ -4,7 +4,7 @@ import java.time.Instant;
 import lombok.Data;
 
 @Data
-public class TradeResultCommand {
+public class TradeResultCommand implements Command {
   private Double size;
   private Double wantedEntryLevel;
   private Double actualEntryLevel;

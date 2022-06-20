@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ClosePositionCommand {
+public class ClosePositionCommand implements Command {
   String epic;
 }

@@ -2,27 +2,26 @@ package org.trading.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.trading.event.MidPriceEvent;
 
 @Data
 public class Position {
-  String epic;
-  Order order;
-  Double entryPrice;
-  String state;
+  private Order order;
+  private Double entryPrice;
+  private String state;
 
   public Position(Order order, Double entryPrice) {
     this.order = order;
     this.entryPrice = entryPrice;
-    this.epic = order.getEpic();
     this.state = "CREATED";
   }
 
   // TODO price will be midPrice while entry price will be BID or ASK will that be an issue?
-  public boolean isInProfit(Double price) {
-    if (order.direction.equals("SELL")) {
-      return price < entryPrice;
+  public boolean isInProfit(MidPriceEvent price) {
+    if (order.getDirection().equals("SELL")) {
+      return price.getLevel() < entryPrice;
     } else {
-      return price > entryPrice;
+      return price.getLevel() > entryPrice;
     }
   }
 }
