@@ -21,7 +21,7 @@ public abstract class SystemProperties {
   protected final static LocalTime EU_OPEN = LocalTime.parse("09:00");
   protected final static LocalTime EU_CLOSE = LocalTime.parse("17:30");
 
-  protected ZonedDateTime getTodayMarketClose(MarketInfo marketInfo) {
+  public ZonedDateTime getTodayMarketClose(MarketInfo marketInfo) {
     if (marketInfo.isEu()) {
       return LocalDate.now().atTime(EU_CLOSE).minusMinutes(CLOSE_DELTA).atZone(ZoneId.of("Europe/Stockholm"));
     }

@@ -2,6 +2,7 @@ package org.trading.command;
 
 import java.time.Instant;
 import lombok.Data;
+import org.trading.model.Position;
 
 @Data
 public class TradeResultCommand implements Command {
@@ -17,4 +18,9 @@ public class TradeResultCommand implements Command {
   private String epic;
   private Integer version;
   private Double oneR;
+
+  public static TradeResultCommand from(Position position) {
+    var command = new TradeResultCommand();
+    return command;
+  }
 }

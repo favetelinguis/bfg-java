@@ -9,12 +9,10 @@ public class Order {
   private final AtrEvent currentAtr;
   private final Double wantedEntryPrice;
   private String dealId;
-  private String state;
 
   public Order(String direction, Double wantedEntryLevel, AtrEvent currentAtr) {
     this.direction = direction;
     this.currentAtr = currentAtr;
     this.wantedEntryPrice = wantedEntryLevel;
-    this.state = "CREATED";
   }
 }

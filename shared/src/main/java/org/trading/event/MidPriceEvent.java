@@ -30,4 +30,7 @@ public class MidPriceEvent extends SystemProperties {
       return false;
   }
 
+  public boolean isOutsideBuffer(OpeningRange openingRange, AtrEvent currentAtr) {
+    return isOver(openingRange, currentAtr) || isInside(openingRange, currentAtr) || isUnder(openingRange, currentAtr);
+  }
 }

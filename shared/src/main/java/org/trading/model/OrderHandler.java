@@ -1,5 +1,7 @@
 package org.trading.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -23,18 +25,6 @@ public class OrderHandler {
     }
   }
 
-  public Optional<Order> getBuy() {
-    return Optional.ofNullable(buy);
-  }
-
-  public Optional<Order> getSell() {
-    return Optional.ofNullable(sell);
-  }
-
-  public Optional<Position> getPosition() {
-    return Optional.ofNullable(position);
-  }
-
   public void createPosition(Opu event) {
     if (event.getDirection().equals("BUY")) {
       position = new Position(buy, event.getLevel());
@@ -45,12 +35,16 @@ public class OrderHandler {
     }
   }
 
-  public boolean isPositionCreated() {
-    return Optional.ofNullable(position).filter(p -> p.getState().equals("CREATED")).isPresent();
+  public boolean hasBuyOrder() {
+    return buy != null;
   }
 
-  public boolean noOrder() {
-    return buy == null && sell == null;
+  public boolean hasSellOrder() {
+    return sell != null;
+  }
+
+  public boolean hasBuyAndSellOrder() {
+    return hasBuyOrder() && hasSellOrder();
   }
 
   public boolean hasPosition() {
@@ -71,5 +65,28 @@ public class OrderHandler {
     } else {
       return buy.getDealId();
     }
+  }
+
+  public void resetOrders() {
+    buy = null;
+    sell = null;
+    position = null;
+  }
+
+  public List<String>  getDealIds() {
+    List<String> dealIds = new ArrayList<>();
+    if (hasSellOrder()) {
+      var dealId = sell.getDealId();
+      if (dealId != null) {
+        dealIds.add(dealId);
+      }
+    }
+    if (hasBuyOrder()) {
+      var dealId = buy.getDealId();
+      if (dealId != null) {
+        dealIds.add(dealId);
+      }
+    }
+    return dealIds;
   }
 }

@@ -8,12 +8,10 @@ import org.trading.event.MidPriceEvent;
 public class Position {
   private Order order;
   private Double entryPrice;
-  private String state;
 
   public Position(Order order, Double entryPrice) {
     this.order = order;
     this.entryPrice = entryPrice;
-    this.state = "CREATED";
   }
 
   // TODO price will be midPrice while entry price will be BID or ASK will that be an issue?

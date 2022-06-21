@@ -17,43 +17,51 @@ public class SystemsHandler {
   private AccountEquityEvent accountEquityEvent;
 
   public synchronized void insertSystem(SystemData event) {
-    event.setCurrentAccountEquity(accountEquityEvent);
-    if (systemHandler.putIfAbsent(event.getEpic(), event) != null) {
-      log.error("Trying to insert system that already exist {}", event.getEpic());
+    if (accountEquityEvent != null) {
+      event.setCurrentAccountEquity(accountEquityEvent);
+      if (systemHandler.putIfAbsent(event.getEpic(), event) != null) {
+        log.error("Trying to insert system that already exist {}", event.getEpic());
+      }
+    } else {
+      log.error("Trying to initialize System for {} when AccountEquity is null is not allowed", event.getEpic());
     }
   }
 
   public synchronized void updateMidPrice(MidPriceEvent event) {
     if (systemHandler.containsKey(event.getEpic())) {
-      systemHandler.get(event.getEpic()).updateMidPrice(event);
+      systemHandler.get(event.getEpic()).handleMidPriceEvent(event);
     }
   }
 
   public synchronized void updateAtr(AtrEvent event) {
     if (systemHandler.containsKey(event.getEpic())) {
-      systemHandler.get(event.getEpic()).updateAtr(event);
+      systemHandler.get(event.getEpic()).handleAtrEvent(event);
     }
   }
 
   public synchronized void updateOpu(Opu event) {
     if (systemHandler.containsKey(event.getEpic())) {
-      systemHandler.get(event.getEpic()).updateOrderStatus(event);
+      systemHandler.get(event.getEpic()).handleOpuEvent(event);
     }
   }
   public synchronized void updateConfirms(Confirms event) {
     if (systemHandler.containsKey(event.getEpic())) {
-      systemHandler.get(event.getEpic()).updateOrderStatus(event);
+      systemHandler.get(event.getEpic()).handleConfirmsEvent(event);
     }
   }
   public synchronized void updateMarketClose(MarketClose event) {
     if (systemHandler.containsKey(event.getEpic())) {
-      systemHandler.get(event.getEpic()).updateOrderStatus(event);
+      systemHandler.get(event.getEpic()).handleMarketClose(event);
       systemHandler.remove(event.getEpic());
     }
   }
 
   public synchronized void updateAccountEquity(AccountEquityEvent event) {
-    this.accountEquityEvent = event;
+    if (this.accountEquityEvent == null) {
+      this.accountEquityEvent = event;
+    } else {
+      this.accountEquityEvent.setEquity(event.getEquity());
+    }
   }
 
 }
