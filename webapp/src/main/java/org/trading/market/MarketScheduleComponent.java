@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.trading.SystemProperties;
 import org.trading.event.MarketClose;
 import org.trading.model.MarketInfo;
 
@@ -26,15 +27,9 @@ import org.trading.model.MarketInfo;
  */
 @Component
 @Slf4j
-public class MarketScheduleComponent {
+public class MarketScheduleComponent extends SystemProperties {
   private final MarketProps market;
   private ApplicationEventPublisher publisher;
-  private final static Long OPEN_DELTA = 15l; // TODO should be atr calc +1?
-  private final static Long CLOSE_DELTA = 5l;
-  private final static LocalTime US_OPEN = LocalTime.parse("15:30");
-  private final static LocalTime US_CLOSE = LocalTime.parse("22:00");
-  private final static LocalTime EU_OPEN = LocalTime.parse("09:00");
-  private final static LocalTime EU_CLOSE = LocalTime.parse("17:30");
 
   @Autowired
   public MarketScheduleComponent(MarketProps market, ApplicationEventPublisher publisher) {

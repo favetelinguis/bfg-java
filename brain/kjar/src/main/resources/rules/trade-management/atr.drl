@@ -7,7 +7,7 @@ dialect  "mvel"
 
 rule "Update ATR for Market"
     when
-      AtrEvent($e: epic, $l: level) from entry-point "ATR"
+      AtrEvent($e: epic, $l: getAtr) from entry-point "ATR"
       $sd: SystemData(epic == $e)
     then
       modify($sd){setCurrentAtr($l)}

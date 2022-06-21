@@ -2,9 +2,6 @@ package org.trading.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.kie.api.definition.type.Expires;
-import org.kie.api.definition.type.Role;
-import org.kie.api.definition.type.Role.Type;
 import org.trading.SystemProperties;
 
 /**
@@ -13,18 +10,28 @@ import org.trading.SystemProperties;
  */
 @AllArgsConstructor
 @Data
-@Role(Type.EVENT)
-@Expires("9h")
 public class OpeningRange extends SystemProperties {
-  String epic;
-  Double midHigh;
-  Double midLow;
+  private String epic;
+  private Double midHigh;
+  private Double midLow;
 
   public Double pipsInOpeningRange() {
     return midHigh - midLow;
   }
 
   public boolean isLargeEnough(AtrEvent atr) {
-    return pipsInOpeningRange() >= (atr.getLevel() * minAtrMultipleForOpeningRange);
+    return pipsInOpeningRange() >= (atr.getAtr() * minAtrMultipleForOpeningRange);
+  }
+  public Double getWantedEntryLevel(String entryType, MidPriceEvent midPrice) {
+    if (entryType.equals("BUY_LOW")) {
+      return midLow + midPrice.getSpread();
+    } else if (entryType.equals("BUY_HIGH")) {
+      return midHigh + midPrice.getSpread();
+    } else if (entryType.equals("SELL_LOW")) {
+      return midLow - midPrice.getSpread();
+    } else if (entryType.equals("SELL_HIGH")) {
+      return midHigh - midPrice.getSpread();
+    }
+    throw new IllegalArgumentException("unknown entry type");
   }
 }

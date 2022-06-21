@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -75,8 +76,10 @@ class MarketDataComponent {
   public void updateBarSeriesAndPublishAtr(BarUpdate bar) {
     if (marketCache.containsEpic(bar.getEpic())) {
       // Send mid price for every market that is trading atm if this update change bid and ask
-      if (bar.getUpdate().containsKey("OFR_CLOSE") && bar.getUpdate().containsKey("BID_CLOSE")) {
-        try { // Ibland kan OFR_CLOSE eller BID_CLOSE vara tom string then this will fail with excpeion in parser
+      var hasOfr = Optional.ofNullable(bar.getUpdate().get("OFR_CLOSE")).filter(s -> !s.isBlank());
+      var hasBid = Optional.ofNullable(bar.getUpdate().get("BID_CLOSE")).filter(s -> !s.isBlank());
+      if (hasBid.isPresent() && hasBid.isPresent()) {
+        try { // TODO is there an issue here whre i always expect bid and ofr to come in pair, i will miss if only one changes
           var askClose = Double.parseDouble(bar.getUpdate().get("OFR_CLOSE"));
           var bidClose = Double.parseDouble(bar.getUpdate().get("BID_CLOSE"));
           publisher.publishEvent(new MidPriceEvent(bar.getEpic(), (askClose + bidClose) / 2, askClose - bidClose));

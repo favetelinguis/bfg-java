@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +100,8 @@ public class IgStreamService {
               var confirms = objectMapper.readValue(rawConfirms, Confirms.class);
               if (!isOld(confirms)) {
                 publisher.publishEvent(confirms);
+              } else {
+                log.warn("Got an old confirms {}", confirms);
               }
             } catch (JsonProcessingException | ParseException e) {
               log.error("Failed to parse Confirms", e);
@@ -157,6 +160,7 @@ public class IgStreamService {
   // I have tried to disable snapshot in subscription but to no affect.
   private boolean isOld(Confirms confirms) throws ParseException {
     var dtf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    dtf.setTimeZone(TimeZone.getTimeZone("UTC"));
     var utcNow = Instant.now();
     var confirmsUpdate = confirms.getDate().replace("T", " ");
     var utcConfirmsUpdate = dtf.parse(confirmsUpdate).toInstant();

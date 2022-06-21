@@ -1,16 +1,20 @@
 package org.trading.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.trading.event.AtrEvent;
 
 @Data
 public class Order {
-  private String direction;
+  private final String direction;
+  private final AtrEvent currentAtr;
+  private final Double wantedEntryPrice;
   private String dealId;
-  private Double wantedEntryPrice;
+  private String state;
 
-  public Order(String direction) {
+  public Order(String direction, Double wantedEntryLevel, AtrEvent currentAtr) {
     this.direction = direction;
+    this.currentAtr = currentAtr;
+    this.wantedEntryPrice = wantedEntryLevel;
+    this.state = "CREATED";
   }
 }

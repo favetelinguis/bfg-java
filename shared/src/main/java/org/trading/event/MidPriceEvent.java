@@ -18,20 +18,21 @@ public class MidPriceEvent extends SystemProperties {
 
   public boolean isOver(OpeningRange openingRange, AtrEvent atr) {
     if (openingRange != null && atr != null) {
-      return level > (openingRange.getMidHigh() + (bufferMultipleOfAtr * atr.getLevel()));
+      return level > (openingRange.getMidHigh() + (bufferMultipleOfAtr * atr.getAtr()));
     }
     return false;
   }
   public boolean isUnder(OpeningRange openingRange, AtrEvent atr) {
     if (openingRange != null && atr != null) {
-      return level < (openingRange.getMidLow() - (bufferMultipleOfAtr * atr.getLevel()));
+      return level < (openingRange.getMidLow() - (bufferMultipleOfAtr * atr.getAtr()));
     }
     return false;
   }
   public boolean isInside(OpeningRange openingRange, AtrEvent atr) {
       if (openingRange != null && atr != null) {
-        return !isOver(openingRange, atr) && !isUnder(openingRange, atr);
+        return (level > (openingRange.getMidLow() + (bufferMultipleOfAtr * atr.getAtr())))  && (level < (openingRange.getMidHigh() - (bufferMultipleOfAtr * atr.getAtr())));
       }
       return false;
   }
+
 }

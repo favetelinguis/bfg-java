@@ -18,7 +18,7 @@ market:
       nonTradingDays:
         - "2023-12-24"
       barsInOpeningRange: 1
-      valueOfOnePip: 1
+      valueOfOnePip: 10
     -
       epic: IX.D.NASDAQ.IFE.IP
       expiry: "-"
@@ -32,7 +32,7 @@ market:
       nonTradingDays:
         - "2023-12-24"
       barsInOpeningRange: 5
-      valueOfOnePip: 1
+      valueOfOnePip: 10
 
 logging:
   level:

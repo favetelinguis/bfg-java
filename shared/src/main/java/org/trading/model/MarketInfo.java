@@ -23,7 +23,7 @@ public class MarketInfo {
   private String marketZone;
   private Set<LocalDate> nonTradingDays;
   private Long barsInOpeningRange;
-  private Double valueOfOnePip;
+  private Double valueOfOnePip; // TODO this is not good now since this is a rogh estimate when my account is in SEK but 1pip is in EUR so i give this in sek
 
   public boolean isEu() {
     return marketZone.equals("EU");

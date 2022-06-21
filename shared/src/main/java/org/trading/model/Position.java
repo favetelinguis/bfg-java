@@ -24,4 +24,23 @@ public class Position {
       return price.getLevel() > entryPrice;
     }
   }
+
+  public Double getStopLevel() {
+    if (order.getDirection().equals("BUY")) {
+      return entryPrice - order.getCurrentAtr().stopDistance();
+    } else {
+      return entryPrice + order.getCurrentAtr().stopDistance();
+    }
+  }
+  public Double getTargetLevel() {
+    if (order.getDirection().equals("BUY")) {
+      return entryPrice + order.getCurrentAtr().targetDistance();
+    } else {
+      return entryPrice - order.getCurrentAtr().targetDistance();
+    }
+  }
+
+  public Double getTrailingStopDistance() {
+      return order.getCurrentAtr().stopDistance();
+  }
 }

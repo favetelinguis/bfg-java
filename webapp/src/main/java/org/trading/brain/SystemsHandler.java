@@ -3,7 +3,6 @@ package org.trading.brain;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.trading.event.AccountEquityEvent;
 import org.trading.event.AtrEvent;
 import org.trading.event.Confirms;
@@ -18,6 +17,7 @@ public class SystemsHandler {
   private AccountEquityEvent accountEquityEvent;
 
   public synchronized void insertSystem(SystemData event) {
+    event.setCurrentAccountEquity(accountEquityEvent);
     if (systemHandler.putIfAbsent(event.getEpic(), event) != null) {
       log.error("Trying to insert system that already exist {}", event.getEpic());
     }

@@ -1,34 +1,19 @@
 package org.trading.model;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import lombok.Getter;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.trading.command.CreateWorkingOrderCommand;
+import org.trading.event.Confirms;
 import org.trading.event.Opu;
 
 @Slf4j
+@Data
 public class OrderHandler {
   private Order buy;
   private Order sell;
-  @Getter
   private Position position;
 
-  public OrderHandler(Order order1, Order order2) {
-    assert !order1.getDirection().equals(order2.getDirection());
-    if (order1.getDirection().equals("BUY")) {
-      this.buy = order1;
-      this.sell = order2;
-    } else if (order2.getDirection().equals("BUY")){
-      this.buy = order2;
-      this.sell = order1;
-    } else {
-      throw new IllegalArgumentException("One must be a BUY order");
-    }
-  }
-
-  public OrderHandler(Order order) {
+  public void setOrder(Order order) {
     if (order.getDirection().equals("BUY")) {
       this.buy = order;
     } else if (order.getDirection().equals("SELL")){
@@ -36,6 +21,18 @@ public class OrderHandler {
     } else {
       throw new IllegalArgumentException("Order must be either buy or sell");
     }
+  }
+
+  public Optional<Order> getBuy() {
+    return Optional.ofNullable(buy);
+  }
+
+  public Optional<Order> getSell() {
+    return Optional.ofNullable(sell);
+  }
+
+  public Optional<Position> getPosition() {
+    return Optional.ofNullable(position);
   }
 
   public void createPosition(Opu event) {
@@ -49,10 +46,30 @@ public class OrderHandler {
   }
 
   public boolean isPositionCreated() {
-    return position != null && position.getState().equals("CREATED");
+    return Optional.ofNullable(position).filter(p -> p.getState().equals("CREATED")).isPresent();
   }
 
-  public boolean hasOrder() {
-    return (buy != null || sell != null) && position == null;
+  public boolean noOrder() {
+    return buy == null && sell == null;
+  }
+
+  public boolean hasPosition() {
+    return position != null;
+  }
+
+  public void setDealId(Confirms event) {
+    if (event.getDirection().equals("BUY")) {
+      buy.setDealId(event.getDealId());
+    } else {
+      sell.setDealId(event.getDealId());
+    }
+  }
+
+  public String getOtherDealId(Opu event) {
+    if (event.getDirection().equals("BUY")) {
+      return sell.getDealId(); // TODO this can be null?
+    } else {
+      return buy.getDealId();
+    }
   }
 }
