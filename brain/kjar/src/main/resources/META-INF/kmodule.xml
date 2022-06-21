@@ -1,8 +1,0 @@
-<kmodule xmlns="http://www.drools.org/xsd/kmodule">
-  <kbase name="rules.trade-management" eventProcessingMode="stream">
-    <ksession name="rules.trade-management.session" type="stateful"/>
-  </kbase>
-  <kbase name="rules.position-sizing">
-    <ksession name="rules.position-sizing.session" type="stateful"/>
-  </kbase>
-</kmodule>
