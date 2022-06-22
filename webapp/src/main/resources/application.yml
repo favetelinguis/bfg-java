@@ -89,13 +89,9 @@ logging:
     root: info
 
 spring:
-  mvc:
-    hiddenmethod: #Check spring in practice book why this is needed
-      filter:
-        enabled: true
   data:
     mongodb:
       database: bfg
   devtools:
     restart:
-      enabled: false
+      enabled: false # Good when working in fronted but now when changing backend
