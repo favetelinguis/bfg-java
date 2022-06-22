@@ -1,5 +1,7 @@
 package org.trading.fsm;
 
+import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.trading.command.CreateWorkingOrderCommand;
 import org.trading.event.AtrEvent;
 import org.trading.event.Confirms;
@@ -9,71 +11,64 @@ import org.trading.event.Opu;
 import org.trading.event.SystemData;
 import org.trading.model.Order;
 
+@Slf4j
 public class FindEntry implements SystemState {
 
   @Override
   public void handleMidPriceEvent(SystemData s, MidPriceEvent event) {
     if (s.getCurrentMidPrice().isOver(s.getOpeningRange(), s.getCurrentAtr())) {
-      var wantedEntryLevel = s.getOpeningRange()
-          .getWantedEntryLevel("SELL_HIGH", s.getCurrentMidPrice());
-      var buyOrder = new Order("BUY", wantedEntryLevel, s.getCurrentAtr());
-      s.getOrderHandler().setOrder(buyOrder);
-      s.getCommandExecutor().accept(CreateWorkingOrderCommand.from(
-              buyOrder.getDirection(),
-              s.getMarketInfo(),
-              s.getTodayMarketClose(s.getMarketInfo()),
-              buyOrder.getCurrentAtr().targetDistance(),
-              buyOrder.getCurrentAtr().stopDistance(),
-              buyOrder.getCurrentAtr().positionSize(s.getMarketInfo(), s.getCurrentAccountEquity()),
-              buyOrder.getWantedEntryPrice()
-          )
-      );
-      s.setState(new AwaitCreateWorkingOrder());
+      maybeOpenOrder("BUY_HIGH", "BUY", s);
     } else if (s.getCurrentMidPrice().isInside(s.getOpeningRange(), s.getCurrentAtr())) {
-      var wantedEntryLevelBuy = s.getOpeningRange()
-          .getWantedEntryLevel("BUY_LOW", s.getCurrentMidPrice());
-      var wantedEntryLevelSell = s.getOpeningRange()
-          .getWantedEntryLevel("SELL_HIGH", s.getCurrentMidPrice());
-      var buyOrder = new Order("BUY", wantedEntryLevelBuy, s.getCurrentAtr());
-      var sellOrder = new Order("SELL", wantedEntryLevelSell, s.getCurrentAtr());
-      s.getOrderHandler().setOrder(buyOrder);
-      s.getOrderHandler().setOrder(sellOrder);
-      s.getCommandExecutor().accept(CreateWorkingOrderCommand.from(
-              buyOrder.getDirection(),
+      // TODO could be that we take BUY_LOW but cant afford SELL_HIGH
+      maybeOpenOrder("BUY_LOW", "BUY", s);
+      maybeOpenOrder("SELL_HIGH", "SELL", s);
+    } else if (s.getCurrentMidPrice().isUnder(s.getOpeningRange(), s.getCurrentAtr())) {
+      maybeOpenOrder("SELL_LOW", "SELL", s);
+    }
+  }
+
+  private void maybeOpenOrder(String entryType, String direction, SystemData s) {
+//    Stream.of(s.getCurrentAtr().positionSize(s.getMarketInfo(), s.getCurrentAccountEquity()))
+    Stream.of(s.getMarketInfo().getLotSize())
+        .filter(size -> {
+          var nonZeroSize = size >= s.getMarketInfo().getLotSize();
+          if (!nonZeroSize) {
+            log.warn("Order skipped, size not larger then market min size");
+          }
+          return nonZeroSize;
+        })
+        .filter(size -> {
+          var hasEnoughMargin = s.currentAccountEquity.hasEnoughMarginLeft(size, s.getCurrentMidPrice(), s.getMarketInfo());
+          if (!hasEnoughMargin) {
+            log.warn("Order skipped due to not enough margin left");
+          }
+          return hasEnoughMargin;
+        })
+        .filter(size -> {
+          var isStopLargeEnough = s.getCurrentAtr().stopDistance() >= s.getMarketInfo().getMinStop();
+          if (!isStopLargeEnough) {
+            log.warn("Order skipped due to stop is to small");
+          }
+          return isStopLargeEnough;
+        })
+        .forEach(size -> {
+          var wantedEntryLevel = s.getOpeningRange()
+              .getWantedEntryLevel(entryType, s.getCurrentMidPrice());
+          var targetDistance = s.getCurrentAtr().targetDistance();
+          var stopDistance= s.getCurrentAtr().stopDistance();
+          var newOrder = new Order(direction, wantedEntryLevel, size, targetDistance, stopDistance);
+          s.getOrderHandler().setOrder(newOrder);
+          s.getCommandExecutor().accept(CreateWorkingOrderCommand.from(
+              newOrder.getDirection(),
               s.getMarketInfo(),
               s.getTodayMarketClose(s.getMarketInfo()),
-              buyOrder.getCurrentAtr().targetDistance(),
-              buyOrder.getCurrentAtr().stopDistance(),
-              buyOrder.getCurrentAtr().positionSize(s.getMarketInfo(), s.getCurrentAccountEquity()),
-              buyOrder.getWantedEntryPrice()
-          )
-      );
-      s.getCommandExecutor().accept(CreateWorkingOrderCommand.from(
-          sellOrder.getDirection(),
-          s.getMarketInfo(),
-          s.getTodayMarketClose(s.getMarketInfo()),
-          sellOrder.getCurrentAtr().targetDistance(),
-          sellOrder.getCurrentAtr().stopDistance(),
-          sellOrder.getCurrentAtr().positionSize(s.getMarketInfo(), s.getCurrentAccountEquity()),
-          sellOrder.getWantedEntryPrice()
-      ));
-      s.setState(new AwaitCreateWorkingOrder());
-    } else if (s.getCurrentMidPrice().isUnder(s.getOpeningRange(), s.getCurrentAtr())) {
-      var wantedEntryLevel = s.getOpeningRange()
-          .getWantedEntryLevel("SELL_LOW", s.getCurrentMidPrice());
-      var sellOrder = new Order("SELL", wantedEntryLevel, s.getCurrentAtr());
-      s.getOrderHandler().setOrder(sellOrder);
-      s.getCommandExecutor().accept(CreateWorkingOrderCommand.from(
-          sellOrder.getDirection(),
-          s.getMarketInfo(),
-          s.getTodayMarketClose(s.getMarketInfo()),
-          sellOrder.getCurrentAtr().targetDistance(),
-          sellOrder.getCurrentAtr().stopDistance(),
-          sellOrder.getCurrentAtr().positionSize(s.getMarketInfo(), s.getCurrentAccountEquity()),
-          sellOrder.getWantedEntryPrice()
-      ));
-      s.setState(new AwaitCreateWorkingOrder());
-    }
+              targetDistance,
+              stopDistance,
+              size,
+              newOrder.getWantedEntryPrice()
+          ));
+          s.setState(new AwaitCreateWorkingOrder());
+        });
   }
 
   @Override
@@ -91,8 +86,4 @@ public class FindEntry implements SystemState {
 
   }
 
-  @Override
-  public void handleMarketClose(SystemData s, MarketClose event) {
-
-  }
 }

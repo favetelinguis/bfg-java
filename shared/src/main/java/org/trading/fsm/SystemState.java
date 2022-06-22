@@ -12,5 +12,4 @@ public interface SystemState {
   void handleAtrEvent(SystemData s, AtrEvent event);
   void handleOpuEvent(SystemData s, Opu event);
   void handleConfirmsEvent(SystemData s, Confirms event);
-  void handleMarketClose(SystemData s, MarketClose event);
 }

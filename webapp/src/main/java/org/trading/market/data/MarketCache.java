@@ -75,7 +75,7 @@ class MarketCache {
 
     }
 
-    Double getCurrentAtr() {
+    public Double getCurrentAtr() {
       return atrIndicator.getValue(barSeries.getEndIndex()).doubleValue();
     }
   }

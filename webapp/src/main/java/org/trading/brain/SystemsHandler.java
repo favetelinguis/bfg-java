@@ -50,9 +50,9 @@ public class SystemsHandler {
     }
   }
   public synchronized void updateMarketClose(MarketClose event) {
-    if (systemHandler.containsKey(event.getEpic())) {
-      systemHandler.get(event.getEpic()).handleMarketClose(event);
-      systemHandler.remove(event.getEpic());
+    var maybeSystem = systemHandler.remove(event.getMarketInfo().getEpic());
+    if (maybeSystem != null) {
+      maybeSystem.closeMarket(); // Will close any open positions
     }
   }
 
@@ -60,7 +60,12 @@ public class SystemsHandler {
     if (this.accountEquityEvent == null) {
       this.accountEquityEvent = event;
     } else {
-      this.accountEquityEvent.setEquity(event.getEquity());
+      if (event.getEquity() != null) {
+        this.accountEquityEvent.setEquity(event.getEquity());
+      }
+      if (event.getAvailableCache() != null) {
+        this.accountEquityEvent.setAvailableCache(event.getAvailableCache());
+      }
     }
   }
 

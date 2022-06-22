@@ -2,20 +2,13 @@ package org.trading.event;
 
 import java.util.function.Consumer;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.trading.SystemProperties;
+import org.trading.command.ClosePositionCommand;
 import org.trading.command.Command;
-import org.trading.command.CreateWorkingOrderCommand;
-import org.trading.command.DeleteWorkingOrderCommand;
-import org.trading.command.TradeResultCommand;
-import org.trading.command.UpdatePositionCommand;
-import org.trading.command.UpdateWorkingOrderCommand;
 import org.trading.fsm.InitialState;
 import org.trading.fsm.SystemState;
 import org.trading.model.MarketInfo;
-import org.trading.model.Order;
 import org.trading.model.OrderHandler;
 
 /**
@@ -33,16 +26,22 @@ public class SystemData extends SystemProperties {
   private final OrderHandler orderHandler = new OrderHandler();
   private final Consumer<Command> commandExecutor;
   private MidPriceEvent currentMidPrice;
-  private AtrEvent currentAtr;
+  private final AtrEvent currentAtr;
    // Used to initialize system with an account equity at creation, then it will be updated from outside.
-  public AccountEquityEvent currentAccountEquity;
+  public AccountEquityEvent currentAccountEquity; // IS initalized when we create SystemData so never null
+
+  public void setState(SystemState newState) {
+    log.info("{} -> {} For {}", state.getClass().getSimpleName(), newState.getClass().getSimpleName(), epic);
+    this.state = newState;
+  }
 
   public SystemData(String epic, MarketInfo marketInfo, OpeningRange openingRange,
-      Consumer<Command> commandExecutor) {
+      Consumer<Command> commandExecutor, Double currentAtr) {
     this.epic = epic;
     this.marketInfo = marketInfo;
     this.openingRange = openingRange;
     this.commandExecutor = commandExecutor;
+    this.currentAtr = new AtrEvent(epic, currentAtr);
   }
 
   public void handleMidPriceEvent(MidPriceEvent event) {
@@ -54,16 +53,8 @@ public class SystemData extends SystemProperties {
     }
     state.handleMidPriceEvent(this, event);
   }
-  /**
-   * Important that we stop updating ATR once we have a position since we want to use the last know
-   * order adjustment when calculating the levels for adding tailing stop.
-   */
-  public void handleAtrEvent(AtrEvent event) { // TODO need to fix the comment I dont want o stop updating atr need some other way to find levels when adding trail
-    if (currentAtr == null) {
-      currentAtr = event;
-    } else {
-      currentAtr.setAtr(event.getAtr());
-    }
+  public void handleAtrEvent(AtrEvent event) {
+    currentAtr.setAtr(event.getAtr());
     state.handleAtrEvent(this, event);
   }
 
@@ -75,7 +66,9 @@ public class SystemData extends SystemProperties {
     state.handleConfirmsEvent(this, event);
   }
 
-  public void handleMarketClose(MarketClose event) {
-    state.handleMarketClose(this, event);
+  public void closeMarket() {
+    if (orderHandler.hasPosition()) {
+      commandExecutor.accept(ClosePositionCommand.from(epic, marketInfo.getExpiry(), orderHandler.getPosition().getOrder().getSize()));
+    }
   }
 }

@@ -41,8 +41,4 @@ public class AwaitDeleteWorkingOrder implements SystemState {
     }
   }
 
-  @Override
-  public void handleMarketClose(SystemData s, MarketClose event) {
-
-  }
 }

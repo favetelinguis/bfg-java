@@ -59,12 +59,19 @@ public class OrderHandler {
     }
   }
 
-  public String getOtherDealId(Opu event) {
+  public Optional<String> getOtherDealId(Opu event) {
     if (event.getDirection().equals("BUY")) {
-      return sell.getDealId(); // TODO this can be null?
+      if (sell != null) {
+        return Optional.of(sell.getDealId());
+      } else {
+        return Optional.empty();
+      }
     } else {
-      return buy.getDealId();
+      if (buy != null) {
+        return Optional.of(buy.getDealId());
+      } else Optional.empty();
     }
+    return Optional.empty();
   }
 
   public void resetOrders() {

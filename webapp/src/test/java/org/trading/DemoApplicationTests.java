@@ -2,6 +2,8 @@ package org.trading;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -68,8 +70,8 @@ class DemoApplicationTests {
 
 	@Test
 	void parser() {
-		var a = "".isEmpty() ? Double.parseDouble(""): -1.;
-		var b = 2;
+		var a = new BigDecimal(2.22555222).setScale(2, RoundingMode.FLOOR).doubleValue();
+		var d = 1;
 	}
 
 }

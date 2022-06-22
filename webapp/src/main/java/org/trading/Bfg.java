@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 import org.trading.ig.IgProps;
 import org.trading.ig.IgSessionCreationException;
@@ -48,6 +49,14 @@ public class Bfg {
 		} catch (Exception e) {
 			throw new IgSessionCreationException("IG", e);
 		}
+	}
+
+	@Bean
+	public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+		var threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+		threadPoolTaskScheduler.setPoolSize(8);
+		threadPoolTaskScheduler.setThreadNamePrefix("marketScheduler");
+		return threadPoolTaskScheduler;
 	}
 
 }

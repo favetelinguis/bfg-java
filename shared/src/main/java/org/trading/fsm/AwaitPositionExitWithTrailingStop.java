@@ -4,19 +4,14 @@ import org.trading.command.TradeResultCommand;
 import org.trading.command.UpdatePositionCommand;
 import org.trading.event.AtrEvent;
 import org.trading.event.Confirms;
-import org.trading.event.MarketClose;
 import org.trading.event.MidPriceEvent;
 import org.trading.event.Opu;
 import org.trading.event.SystemData;
 
-public class AwaitPositionExit implements SystemState {
+public class AwaitPositionExitWithTrailingStop implements SystemState {
 
   @Override
   public void handleMidPriceEvent(SystemData s, MidPriceEvent event) {
-    if (s.getOrderHandler().getPosition().isInProfit(s.getCurrentMidPrice())) {
-      s.getCommandExecutor().accept(UpdatePositionCommand.from(s.getEpic(), s.getOrderHandler().getPosition()));
-      s.setState(new AwaitPositionTrailingStopConfirmation());
-    }
   }
 
   @Override

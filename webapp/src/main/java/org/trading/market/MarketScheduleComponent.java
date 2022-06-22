@@ -8,108 +8,82 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
 import org.trading.SystemProperties;
 import org.trading.event.MarketClose;
 import org.trading.model.MarketInfo;
 
-/**
- * Schedule event for market open and close with a delta specific to my strategy currently:
- * Market Open 15min after actual open
- * Market Close 5min before actual close
- * The following times are used
- * Open delta 15minutest
- * Close delta 5minutes
- * EU Open 09:00 Close 17:30
- * US Open 15:30  Close 22:00
- * If server is started between market open + delta AND market close - delta events are fired for market open right away
- */
-@Component
 @Slf4j
-public class MarketScheduleComponent extends SystemProperties {
-  private final MarketProps market;
-  private ApplicationEventPublisher publisher;
+@Component
+public class MarketScheduleComponent {
+
+  private SystemProperties systemProperties = new SystemProperties();
+  private final ThreadPoolTaskScheduler taskScheduler;
+  private final ApplicationEventPublisher publisher;
+  private final MarketProps markets;
 
   @Autowired
-  public MarketScheduleComponent(MarketProps market, ApplicationEventPublisher publisher) {
-    this.market = market;
+  public MarketScheduleComponent(ThreadPoolTaskScheduler taskScheduler, ApplicationEventPublisher publisher, MarketProps markets) {
+    this.taskScheduler = taskScheduler;
     this.publisher = publisher;
+    this.markets = markets;
   }
 
   @EventListener(ApplicationReadyEvent.class)
-  public void checkIfMarketIsOpenNow() {
+  public void initMarkets() {
+    ifMarketOpenNowTrigger();
+    setupSchedulers();
+  }
+
+  private void ifMarketOpenNowTrigger() {
     var today = LocalDate.now();
     // Exclude weekends which is done in chron schedule and needs to be done here also
     if (!today.getDayOfWeek().equals(DayOfWeek.SATURDAY) && !today.getDayOfWeek().equals(DayOfWeek.SUNDAY)) {
-      market.getEpics().stream()
+      markets.getEpics().stream()
           .filter(m -> !m.getNonTradingDays().contains(today)) // Exclude market if it is not trading today
           .forEach( marketInfo -> {
             if (isOpenNow(marketInfo)) {
-              sendOpenEvent(marketInfo, marketInfo.getMarketZone().equals("EU") ? EU_OPEN : US_OPEN);
+              sendOpenEvent(marketInfo);
             }
           });
     }
   }
 
-  // will trigger every weekday at 9:15
-  @Scheduled(cron = "0 15 9 * * 1-5")
-  public void europeOpenPlus15Minutes() {
-    var today = LocalDate.now();
-    market.getEpics().stream()
-        .filter(MarketInfo::isEu)
-        .filter(m -> !m.getNonTradingDays().contains(today))
-        .forEach( marketInfo -> {
-          sendOpenEvent(marketInfo, EU_OPEN);
-        });
+  private void setupSchedulers() {
+    // Skapa CronTrigger basert på market info open and close + number of bars in open
+    // I lambda filtrera på non trading days och trigga
+    // Om marknaden är uppen just nu hur trigga direkt?
+    markets.getEpics().stream().forEach(marketInfo -> {
+      var bars = marketInfo.getBarsInOpeningRange();
+      var openHour = String.valueOf(marketInfo.getLocalOpenTime().getHour());
+      var  openMinute = String.valueOf(marketInfo.getLocalOpenTime().plusMinutes(bars).getMinute());
+      var closeHour = String.valueOf(marketInfo.getLocalCloseTime().getHour());
+      var  closeMinute = String.valueOf(marketInfo.getLocalCloseTime().minusMinutes(systemProperties.closeDelta).getMinute());
+      var start = taskScheduler.schedule(() -> sendOpenEvent(marketInfo), new CronTrigger("0 " + openMinute + " " + openHour + " * * 1-5"));
+      var close = taskScheduler.schedule(() -> sendCloseEvent(marketInfo), new CronTrigger("0 " + closeMinute + " " + closeHour + " * * 1-5"));
+    });
   }
 
-  @Scheduled(cron = "0 25 17 * * 1-5")
-  public void europeCloseMinus5Minutes() {
+  private void sendOpenEvent(MarketInfo marketInfo) {
     var today = LocalDate.now();
-    market.getEpics().stream()
-        .filter(MarketInfo::isEu)
-        .filter(m -> !m.getNonTradingDays().contains(today))
-        .forEach( marketInfo -> {
-          sendCloseEvent(marketInfo.getEpic());
-        });
-  }
-  @Scheduled(cron = "0 45 15 * * 1-5")
-  public void usOpenPlus15Minutes() {
-    var today = LocalDate.now();
-    market.getEpics().stream()
-        .filter(MarketInfo::isUs)
-        .filter(m -> !m.getNonTradingDays().contains(today))
-        .forEach( marketInfo -> {
-          sendOpenEvent(marketInfo, US_OPEN);
-        });
-  }
-  @Scheduled(cron = "0 55 21 * * 1-5")
-  public void usCloseMinus5Minutes() {
-    var today = LocalDate.now();
-    market.getEpics().stream()
-        .filter(MarketInfo::isUs)
-        .filter(m -> !m.getNonTradingDays().contains(today))
-        .forEach( marketInfo -> {
-          sendCloseEvent(marketInfo.getEpic());
-        });
-  }
-
-  private void sendOpenEvent(MarketInfo marketInfo, LocalTime openTime) {
-    publisher.publishEvent(new MarketOpen(marketInfo, openTime));
-  }
-  private void sendCloseEvent(String epic) {
-    publisher.publishEvent(new MarketClose(epic));
-  }
-
-  private static boolean isOpenNow(MarketInfo marketInfo) {
-    var now = LocalTime.now();
-    if (marketInfo.isEu()) {
-      return now.isAfter(EU_OPEN.plusMinutes(OPEN_DELTA)) && now.isBefore(EU_CLOSE.minusMinutes(CLOSE_DELTA));
-    } else if (marketInfo.isUs()) {
-      return now.isAfter(US_OPEN.plusMinutes(OPEN_DELTA)) && now.isBefore(US_CLOSE.minusMinutes(CLOSE_DELTA));
+    if (!marketInfo.getNonTradingDays().contains(today)) {
+      publisher.publishEvent(new MarketOpen(marketInfo));
     }
-    return false;
+  }
+  private void sendCloseEvent(MarketInfo marketInfo) {
+    var today = LocalDate.now();
+    if (!marketInfo.getNonTradingDays().contains(today)) {
+      publisher.publishEvent(new MarketClose(marketInfo));
+    }
   }
 
+  private boolean isOpenNow(MarketInfo marketInfo) {
+    var now = LocalTime.now();
+      return
+          now.isAfter(marketInfo.getLocalOpenTime().plusMinutes(marketInfo.getBarsInOpeningRange()))
+              && now.isBefore(
+              marketInfo.getLocalCloseTime().minusMinutes(systemProperties.closeDelta));
+  }
 }

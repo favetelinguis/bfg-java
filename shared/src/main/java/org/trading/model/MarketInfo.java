@@ -12,20 +12,11 @@ public class MarketInfo {
   private String expiry;
   private String currency;
   private Double minStop;
-  private Double maxStopMultiplier;
   private Double lotSize;
   private LocalTime localOpenTime;
   private LocalTime localCloseTime;
-  private String marketZone;
   private Set<LocalDate> nonTradingDays;
   private Long barsInOpeningRange;
   private Double valueOfOnePip; // TODO this is not good now since this is a rogh estimate when my account is in SEK but 1pip is in EUR so i give this in sek
-
-  public boolean isEu() {
-    return marketZone.equals("EU");
-  }
-
-  public boolean isUs() {
-    return marketZone.equals("US");
-  }
+  private Double marginRequirement;
 }

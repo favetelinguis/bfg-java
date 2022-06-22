@@ -28,6 +28,8 @@ public class AwaitPositionEntry implements SystemState {
   @Override
   public void handleOpuEvent(SystemData s, Opu event) {
     if (event.isPositionEntry()) {
+      s.getOrderHandler().getOtherDealId(event).ifPresent(dealId ->
+          s.getCommandExecutor().accept(DeleteWorkingOrderCommand.from(s.getEpic(), dealId)));
       s.getOrderHandler().createPosition(event);
       s.setState(new AwaitPositionExit());
     }
@@ -38,8 +40,4 @@ public class AwaitPositionEntry implements SystemState {
 
   }
 
-  @Override
-  public void handleMarketClose(SystemData s, MarketClose event) {
-
-  }
 }

@@ -10,29 +10,79 @@ market:
       expiry: "-"
       currency: EUR
       minStop: 5
-      maxStopMultiplier: 7
       lotSize: 1
       localOpenTime: "09:00"
       localCloseTime: "17:30"
-      marketZone: EU
       nonTradingDays:
         - "2023-12-24"
       barsInOpeningRange: 1
       valueOfOnePip: 10
+      marginRequirement: 0.05
     -
       epic: IX.D.NASDAQ.IFE.IP
       expiry: "-"
       currency: EUR
       minStop: 4
-      maxStopMultiplier: 8
       lotSize: 1
-      localOpenTime: "09:00"
-      localCloseTime: "17:30"
-      marketZone: US
+      localOpenTime: "15:30"
+      localCloseTime: "22:00"
       nonTradingDays:
         - "2023-12-24"
       barsInOpeningRange: 5
       valueOfOnePip: 10
+      marginRequirement: 0.05
+    -
+      epic: IX.D.SPTRD.IFE.IP
+      expiry: "-"
+      currency: EUR
+      minStop: 1
+      lotSize: 5
+      localOpenTime: "15:30"
+      localCloseTime: "22:00"
+      nonTradingDays:
+        - "2023-12-24"
+      barsInOpeningRange: 5
+      valueOfOnePip: 10
+      marginRequirement: 0.05
+    -
+      epic: IX.D.FTSE.IFE.IP
+      expiry: "-"
+      currency: EUR
+      minStop: 4
+      lotSize: 1
+      localOpenTime: "09:00"
+      localCloseTime: "17:30"
+      nonTradingDays:
+        - "2023-12-24"
+      barsInOpeningRange: 1
+      valueOfOnePip: 10
+      marginRequirement: 0.05
+    -
+      epic: IX.D.CAC.IMF.IP
+      expiry: "-"
+      currency: EUR
+      minStop: 4
+      lotSize: 1
+      localOpenTime: "09:00"
+      localCloseTime: "17:30"
+      nonTradingDays:
+        - "2023-12-24"
+      barsInOpeningRange: 1
+      valueOfOnePip: 10
+      marginRequirement: 0.05
+    -
+      epic: IX.D.OMX.IFM.IP
+      expiry: "-"
+      currency: SEK
+      minStop: 1.5
+      lotSize: 1
+      localOpenTime: "09:00"
+      localCloseTime: "17:30"
+      nonTradingDays:
+        - "2023-12-24"
+      barsInOpeningRange: 1
+      valueOfOnePip: 1
+      marginRequirement: 0.1
 
 logging:
   level:
@@ -46,3 +96,6 @@ spring:
   data:
     mongodb:
       database: bfg
+  devtools:
+    restart:
+      enabled: false

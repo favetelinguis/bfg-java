@@ -12,5 +12,4 @@ import org.trading.model.MarketInfo;
 @Data
 public class MarketOpen {
   MarketInfo marketInfo;
-  LocalTime openingTime;
 }

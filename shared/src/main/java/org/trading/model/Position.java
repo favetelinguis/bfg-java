@@ -8,10 +8,14 @@ import org.trading.event.MidPriceEvent;
 public class Position {
   private Order order;
   private Double entryPrice;
+  private Double entryStropDistance;
+  private Double entryTargetDistance;
 
   public Position(Order order, Double entryPrice) {
     this.order = order;
     this.entryPrice = entryPrice;
+    this.entryStropDistance = order.getStopDistance();
+    this.entryTargetDistance = order.getTargetDistance();
   }
 
   // TODO price will be midPrice while entry price will be BID or ASK will that be an issue?
@@ -25,20 +29,20 @@ public class Position {
 
   public Double getStopLevel() {
     if (order.getDirection().equals("BUY")) {
-      return entryPrice - order.getCurrentAtr().stopDistance();
+      return entryPrice - entryStropDistance;
     } else {
-      return entryPrice + order.getCurrentAtr().stopDistance();
+      return entryPrice + entryStropDistance;
     }
   }
   public Double getTargetLevel() {
     if (order.getDirection().equals("BUY")) {
-      return entryPrice + order.getCurrentAtr().targetDistance();
+      return entryPrice + entryTargetDistance;
     } else {
-      return entryPrice - order.getCurrentAtr().targetDistance();
+      return entryPrice - entryTargetDistance;
     }
   }
 
   public Double getTrailingStopDistance() {
-      return order.getCurrentAtr().stopDistance();
+      return entryStropDistance;
   }
 }

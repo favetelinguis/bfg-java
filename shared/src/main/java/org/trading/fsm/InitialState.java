@@ -11,12 +11,11 @@ public class InitialState implements SystemState {
 
   @Override
   public void handleMidPriceEvent(SystemData s, MidPriceEvent event) {
-
+    s.setState(new FindEntry());
   }
 
   @Override
   public void handleAtrEvent(SystemData s, AtrEvent event) {
-    s.setState(new FindEntry());
   }
 
   @Override
@@ -29,8 +28,4 @@ public class InitialState implements SystemState {
 
   }
 
-  @Override
-  public void handleMarketClose(SystemData s, MarketClose event) {
-
-  }
 }

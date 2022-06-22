@@ -7,18 +7,18 @@ import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.trading.command.ClosePositionCommand;
 import org.trading.command.CreateWorkingOrderCommand;
 import org.trading.command.UpdatePositionCommand;
-import org.trading.command.UpdateWorkingOrderCommand;
 import org.trading.ig.rest.AuthenticationResponseAndConversationContext;
 import org.trading.ig.rest.dto.positions.otc.closeOTCPositionV1.CloseOTCPositionV1Request;
+import org.trading.ig.rest.dto.positions.otc.closeOTCPositionV1.OrderType;
 import org.trading.ig.rest.dto.positions.otc.updateOTCPositionV2.UpdateOTCPositionV2Request;
 import org.trading.ig.rest.dto.prices.getPricesV3.GetPricesV3Response;
 import org.trading.ig.rest.dto.workingorders.otc.createOTCWorkingOrderV2.CreateOTCWorkingOrderV2Request;
 import org.trading.ig.rest.dto.workingorders.otc.createOTCWorkingOrderV2.Direction;
 import org.trading.ig.rest.dto.workingorders.otc.createOTCWorkingOrderV2.TimeInForce;
 import org.trading.ig.rest.dto.workingorders.otc.createOTCWorkingOrderV2.Type;
-import org.trading.ig.rest.dto.workingorders.otc.updateOTCWorkingOrderV2.UpdateOTCWorkingOrderV2Request;
 
 @Service
 @Slf4j
@@ -75,24 +75,6 @@ public class IgRestService {
     }
   }
 
-  public void updateOrder(UpdateWorkingOrderCommand command) {
-    var request = new UpdateOTCWorkingOrderV2Request();
-    // Default
-    request.setTimeInForce(
-        org.trading.ig.rest.dto.workingorders.otc.updateOTCWorkingOrderV2.TimeInForce.GOOD_TILL_DATE);
-    request.setType(org.trading.ig.rest.dto.workingorders.otc.updateOTCWorkingOrderV2.Type.LIMIT);
-    // Per market
-    request.setStopDistance(BigDecimal.valueOf(command.getStopDistance()));
-    request.setLimitDistance(BigDecimal.valueOf(command.getTargetDistance()));
-    request.setStopDistance(BigDecimal.valueOf(command.getStopDistance()));
-    request.setLevel(BigDecimal.valueOf(command.getLevel()));
-    request.setGoodTillDate(command.getGoodTillDate());
-    try {
-      restAPI.updateOTCWorkingOrderV2(authContext.getConversationContext(), command.getDealId(), request);
-    } catch (Exception e) {
-      log.error("Fail to update working order", e);
-    }
-  }
   public void updatePosition(UpdatePositionCommand command) {
     var request = new UpdateOTCPositionV2Request();
     // Default
@@ -108,9 +90,18 @@ public class IgRestService {
       log.error("Failed updating position ", e);
     }
   }
-  public void closePosition() {
+  public void closePosition(ClosePositionCommand command) {
     var request = new CloseOTCPositionV1Request();
-//    restAPI.closeOTCPositionV1(authContext.getConversationContext(), request);
+    request.setEpic(command.getEpic());
+    request.setExpiry(command.getExpiry());
+    request.setTimeInForce(org.trading.ig.rest.dto.positions.otc.closeOTCPositionV1.TimeInForce.EXECUTE_AND_ELIMINATE);
+    request.setOrderType(OrderType.MARKET);
+    request.setSize(BigDecimal.valueOf(command.getSize()));
+    try {
+      restAPI.closeOTCPositionV1(authContext.getConversationContext(), request);
+    } catch (Exception e) {
+      log.error("Failed close of position", e);
+    }
   }
 
   @PreDestroy

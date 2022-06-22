@@ -77,15 +77,18 @@ public class IgStreamService {
     subscriptionsIds.add(
         streamingAPI.subscribeForAccountBalanceInfo(authContext.getAccountId(), (item, update) -> {
           var account = item.split(":")[1];
-          try {
-            igStreamRepository.save(new IgStreamEntity(LocalDateTime.now(), account, update));
-          } catch (Exception e) {
-            log.error("Failure ", e);
-          }
+          igStreamRepository.save(new IgStreamEntity(LocalDateTime.now(), account, update));
+
+          var availableCache = update.get("AVAILABLE_CASH");
           var equity = update.get("FUNDS");
+          var accountEvent = new AccountEquityEvent(account);
           if (equity != null) {
-            publisher.publishEvent(new AccountEquityEvent(account, Double.parseDouble(equity)));
+            accountEvent.setEquity(Double.parseDouble(equity));
           }
+          if (availableCache != null) {
+            accountEvent.setAvailableCache(Double.parseDouble(availableCache));
+          }
+          publisher.publishEvent(accountEvent);
         }));
   }
 

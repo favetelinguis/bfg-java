@@ -27,12 +27,8 @@ public class AwaitPositionTrailingStopConfirmation implements SystemState {
   @Override
   public void handleConfirmsEvent(SystemData s, Confirms event) {
     if (event.isOrderUpdatedSuccess()) {
-      s.setState(new AwaitPositionExit());
+      s.setState(new AwaitPositionExitWithTrailingStop());
     }
   }
 
-  @Override
-  public void handleMarketClose(SystemData s, MarketClose event) {
-
-  }
 }

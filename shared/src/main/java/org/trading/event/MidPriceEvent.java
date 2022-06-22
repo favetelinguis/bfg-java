@@ -23,9 +23,11 @@ public class MidPriceEvent extends SystemProperties {
     }
     return false;
   }
+  // Opening Range mut be large enough and price must be inside
   public boolean isInside(OpeningRange openingRange, AtrEvent atr) {
       if (openingRange != null && atr != null) {
-        return (level > (openingRange.getMidLow() + (bufferMultipleOfAtr * atr.getAtr())))  && (level < (openingRange.getMidHigh() - (bufferMultipleOfAtr * atr.getAtr())));
+        var priceIsInside = (level > (openingRange.getMidLow() + (bufferMultipleOfAtr * atr.getAtr())))  && (level < (openingRange.getMidHigh() - (bufferMultipleOfAtr * atr.getAtr())));
+        return priceIsInside && openingRange.isLargeEnough(atr);
       }
       return false;
   }

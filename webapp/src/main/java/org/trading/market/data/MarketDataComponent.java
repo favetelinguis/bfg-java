@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.num.DecimalNum;
+import org.trading.SystemProperties;
 import org.trading.event.AtrEvent;
 import org.trading.event.MarketClose;
 import org.trading.event.MidPriceEvent;
@@ -30,6 +31,7 @@ import org.trading.event.SystemData;
 @Slf4j
 @Component
 class MarketDataComponent {
+  private SystemProperties systemProperties = new SystemProperties();
   private final IgRestService igRestService;
   private final ApplicationEventPublisher publisher;
 
@@ -47,12 +49,19 @@ class MarketDataComponent {
   // TODO check this when running before open, do i get exactly from 9:00 to 9:14 and the first candle update is 9:15???
   @Async
   @EventListener(MarketOpen.class)
-  public void backfill(MarketOpen marketOpen) {
-    var end = LocalDateTime.now().withSecond(0).minusMinutes(1);
-    var start = end.minusMinutes(14); // Hardcoded since we know i need 14 periods
+  public void initSystem(MarketOpen marketOpen) {
     try {
-      var response = igRestService.getData(marketOpen.getMarketInfo().getEpic(), start, end);
-      if (response.getPrices().size() == 14) {
+      // Get Opening range
+      var startOpeningRange = LocalDate.now().atTime(marketOpen.getMarketInfo().getLocalOpenTime());
+      var endOpeningRange = startOpeningRange.plusMinutes(marketOpen.getMarketInfo().getBarsInOpeningRange() - 1); // subtract 1 since end time is excluded
+      var result = igRestService.getData(marketOpen.getMarketInfo().getEpic(), startOpeningRange, endOpeningRange);
+      var openingRange = convertPricesToOpeningRange(marketOpen.getMarketInfo().getEpic(), result);
+
+      // Backfill ATR
+      var endBackFill = LocalDateTime.now().withSecond(0).minusMinutes(1);
+      var startBackFill = endBackFill.minusMinutes(systemProperties.atrPeriod); // Hardcoded since we know i need 14 periods
+      var response = igRestService.getData(marketOpen.getMarketInfo().getEpic(), startBackFill, endBackFill);
+      if (response.getPrices().size() == systemProperties.atrPeriod) {
         var baseBars = createBaseBars(response.getPrices());
         var cache = new MarketState(marketOpen.getMarketInfo().getEpic());
         // Important baseBars is sorted oldest to newest I think it cant handle sorting
@@ -60,11 +69,13 @@ class MarketDataComponent {
           cache.addBar(b);
         }
         marketCache.init(cache);
+        // Setup new system
+        publisher.publishEvent(new SystemData(marketOpen.getMarketInfo().getEpic(), marketOpen.getMarketInfo(), openingRange, publisher::publishEvent, cache.getCurrentAtr()));
       } else {
         throw new IllegalArgumentException("To few items to backfill, expected 14 got " + response.getPrices().size());
       }
     } catch (Exception e) {
-      log.error("Failed backfilling data for epic {}", marketOpen.getMarketInfo().getEpic(), e);
+      log.error("Failed setting up system{}", marketOpen.getMarketInfo().getEpic(), e);
     }
   }
 
@@ -97,26 +108,12 @@ class MarketDataComponent {
   // When the market close remove it from the cache so there will be no new candle updates for it
   @EventListener(MarketClose.class)
   public void removeMarket(MarketClose marketClose) {
-    var market = marketCache.remove(marketClose.getEpic());
+    var market = marketCache.remove(marketClose.getMarketInfo().getEpic());
     if (market == null) {
-      log.info("Trying to remove {} from market cache since its closed but could not find the market.", marketClose.getEpic());
+      log.info("Trying to remove {} from market cache since its closed but could not find the market.", marketClose.getMarketInfo().getEpic());
     } else {
 
-      log.info("Successfully remove {} so it will no longer process market data since the market is outside trading hours.", marketClose.getEpic());
-    }
-  }
-
-  @Async
-  @EventListener(MarketOpen.class)
-  public void getOpeningRange(MarketOpen marketOpen) {
-    try {
-      var start = LocalDate.now().atTime(marketOpen.getOpeningTime());
-      var end = start.plusMinutes(marketOpen.getMarketInfo().getBarsInOpeningRange() - 1); // subtract 1 since end time is excluded
-      var result = igRestService.getData(marketOpen.getMarketInfo().getEpic(), start, end);
-      var openingRange = convertPricesToOpeningRange(marketOpen.getMarketInfo().getEpic(), result);
-      publisher.publishEvent(new SystemData(marketOpen.getMarketInfo().getEpic(), marketOpen.getMarketInfo(), openingRange, publisher::publishEvent));
-    } catch (Exception e) {
-      log.error("Failed to get opening range for {}", marketOpen.getMarketInfo().getEpic(), e);
+      log.info("Successfully remove {} so it will no longer process market data since the market is outside trading hours.", marketClose.getMarketInfo().getEpic());
     }
   }
 
