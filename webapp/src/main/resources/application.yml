@@ -81,7 +81,7 @@ market:
       nonTradingDays:
         - "2023-12-24"
       barsInOpeningRange: 1
-      valueOfOnePip: 1
+      valueOfOnePip: 20
       marginRequirement: 0.1
 
 logging:
