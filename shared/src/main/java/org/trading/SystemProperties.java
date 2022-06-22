@@ -10,7 +10,7 @@ public class SystemProperties {
   public final double percentageRiskPerOrder = 0.005; // 0.5% of account each trade
   public final double maxTotalRiskPercentageForAccount = 6.;
   public final double oneRMultipleOfAtr = 2.;
-  public final double riskRewardRation = 2.;
+  public final double riskRewardRation = 1.;
   public final double minAtrMultipleForOpeningRange = 3.;
   public final double bufferMultipleOfAtr = 1.;
   public final int atrPeriod = 14;
