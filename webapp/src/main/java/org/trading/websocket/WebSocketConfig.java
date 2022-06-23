@@ -12,7 +12,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint("/bfgws").withSockJS();
+    // TODO is the allowedoriginpatterns a security issue?
+    registry.addEndpoint("/bfgws").setAllowedOriginPatterns("*").withSockJS();
   }
 
   @Override

@@ -1,5 +1,6 @@
-const proxy = require("http-proxy-middleware")
+const {createProxyMiddleware}= require("http-proxy-middleware")
 
-module.exports = app => {
-  app.use('/bfgws', proxy.createProxyMiddleware({target: "http://localhost:8080", ws: true}))
+module.exports = function (app) {
+  app.use(createProxyMiddleware('/api', {target: "http://localhost:8080", changeOrigin: true}))
+  app.use(createProxyMiddleware('/bfgws', {target: "http://localhost:8080", ws: true, changeOrigin: true}))
 }

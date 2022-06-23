@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.trading.ig.IgProps;
 import org.trading.ig.IgSessionCreationException;
 import org.trading.ig.RestAPI;
@@ -58,5 +59,4 @@ public class Bfg {
 		threadPoolTaskScheduler.setThreadNamePrefix("marketScheduler");
 		return threadPoolTaskScheduler;
 	}
-
 }

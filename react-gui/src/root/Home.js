@@ -2,6 +2,7 @@ import {useStompClient, useSubscription} from "react-stomp-hooks";
 import {useEffect, useState} from "react";
 import System from "./System";
 import {getContent} from "./utils";
+import axios from "axios";
 
 function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,11 +22,13 @@ function Home() {
   useEffect(() => {
     async function getSystems() {
       setIsLoading(true);
-      if (stompClient) {
-        stompClient.publish({destination: "/app/system"})
-      } else {
-        console.log("STOMP CLIENT NOT INIT");
-      }
+      // if (stompClient) {
+      //   stompClient.publish({destination: "/app/system"})
+      // } else {
+      //   console.log("STOMP CLIENT NOT INIT");
+      // }
+      const response = await axios.get("/api/system");
+      setOpenMarkets(response.data)
       setIsLoading(false);
     }
     getSystems();
