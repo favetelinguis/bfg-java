@@ -1,5 +1,6 @@
 package org.trading.fsm;
 
+import lombok.Data;
 import org.trading.command.DeleteWorkingOrderCommand;
 import org.trading.event.AtrEvent;
 import org.trading.event.Confirms;
@@ -8,6 +9,7 @@ import org.trading.event.MidPriceEvent;
 import org.trading.event.Opu;
 import org.trading.event.SystemData;
 
+@Data
 public class AwaitCreateWorkingOrder implements SystemState {
   private int numConfirms = 0;
   private boolean hasRejection = false;
@@ -60,5 +62,4 @@ public class AwaitCreateWorkingOrder implements SystemState {
       }
     }
   }
-
 }

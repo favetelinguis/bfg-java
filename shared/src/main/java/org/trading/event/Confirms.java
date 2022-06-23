@@ -35,7 +35,7 @@ public class Confirms {
   }
 
   private boolean isStatusAmended() {
-    return status.equals("UPDATED"); // TODO i think WO has AMENDED check docs
+    return status.equals("AMENDED"); // In Confirms updates are AMENDED
   }
 
   private boolean isStatusDeleted() {

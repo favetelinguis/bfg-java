@@ -1,16 +1,7 @@
 package org.trading.brain;
 
-import static org.trading.EntryPointIds.ACCOUNT_EQUITY;
-import static org.trading.EntryPointIds.ATR;
-import static org.trading.EntryPointIds.CONFIRMS;
-import static org.trading.EntryPointIds.MARKET_CLOSE;
-import static org.trading.EntryPointIds.MID_PRICE;
-import static org.trading.EntryPointIds.OPU;
-import static org.trading.EntryPointIds.SYSTEM_DATA;
-
+import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.trading.event.AccountEquityEvent;
@@ -62,4 +53,7 @@ public class BrainComponent {
     systemsHandler.updateMarketClose(event);
   }
 
+  public Collection<SystemData> getActiveSystems() {
+    return systemsHandler.getAll();
+  }
 }

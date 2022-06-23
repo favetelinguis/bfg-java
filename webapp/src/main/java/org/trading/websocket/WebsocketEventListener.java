@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Component;
+import org.trading.event.MidPriceEvent;
 import org.trading.market.data.BarUpdate;
 
 @Component
@@ -17,8 +18,8 @@ public class WebsocketEventListener {
     this.messagingTemplate = messagingTemplate;
   }
 
-  @EventListener(BarUpdate.class)
-  public void handle(BarUpdate event) {
-    messagingTemplate.convertAndSend("/topic/greetings", new Greeting(event.getEpic()));
+  @EventListener(MidPriceEvent.class)
+  public void handle(MidPriceEvent event) {
+    messagingTemplate.convertAndSend("/topic/" + event.getEpic() + "/midPrice", event);
   }
 }

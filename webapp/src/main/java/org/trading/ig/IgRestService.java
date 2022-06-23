@@ -108,7 +108,7 @@ public class IgRestService {
   public void destroy() {
     log.info("Delete IG Session");
     try {
-      restAPI.deleteSessionV1(authContext.getConversationContext());
+//      restAPI.deleteSessionV1(authContext.getConversationContext()); DONT DO THIS IN DEVELOP since i get loged out every time its annoying
     } catch (Exception e) {
       log.warn("Failed to destroy IG session: ", e.getMessage());
     }

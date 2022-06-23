@@ -1,5 +1,6 @@
 package org.trading.event;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.function.Consumer;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +19,15 @@ import org.trading.model.OrderHandler;
  */
 @Slf4j
 @Data
-public class SystemData extends SystemProperties {
+public class SystemData {
+  private SystemProperties systemProperties;
+  @JsonIgnore
   private SystemState state = new InitialState();
   private final String epic;
   private final MarketInfo marketInfo;
   private final OpeningRange openingRange;
   private final OrderHandler orderHandler = new OrderHandler();
+  @JsonIgnore
   private final Consumer<Command> commandExecutor;
   private MidPriceEvent currentMidPrice;
   private final AtrEvent currentAtr;

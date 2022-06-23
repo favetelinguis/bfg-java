@@ -1,6 +1,7 @@
 package org.trading.fsm;
 
 import java.util.stream.Stream;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.trading.command.CreateWorkingOrderCommand;
 import org.trading.event.AtrEvent;
@@ -12,6 +13,7 @@ import org.trading.event.SystemData;
 import org.trading.model.Order;
 
 @Slf4j
+@Data
 public class FindEntry implements SystemState {
 
   @Override
@@ -51,7 +53,17 @@ public class FindEntry implements SystemState {
           }
           return isStopLargeEnough;
         })
+        .filter(size -> {
+          var oneRValueAccount = s.getSystemProperties().percentageRiskPerOrder * s.getCurrentAccountEquity().getEquity();
+          var riskOfTrade = size * s.getCurrentAtr().stopDistance() * s.getMarketInfo().getValueOfOnePip();
+          var isRiskSmallEnough = riskOfTrade <= oneRValueAccount;
+          if (!isRiskSmallEnough) {
+            log.warn("Order skipped since it would risk more then {} of account", s.getSystemProperties().percentageRiskPerOrder);
+          }
+          return isRiskSmallEnough;
+        })
         .forEach(size -> {
+          s.setState(new AwaitCreateWorkingOrder());
           var wantedEntryLevel = s.getOpeningRange()
               .getWantedEntryLevel(entryType, s.getCurrentMidPrice());
           var targetDistance = s.getCurrentAtr().targetDistance();
@@ -61,13 +73,12 @@ public class FindEntry implements SystemState {
           s.getCommandExecutor().accept(CreateWorkingOrderCommand.from(
               newOrder.getDirection(),
               s.getMarketInfo(),
-              s.getTodayMarketClose(s.getMarketInfo()),
+              s.getSystemProperties().getTodayMarketClose(s.getMarketInfo()),
               targetDistance,
               stopDistance,
               size,
               newOrder.getWantedEntryPrice()
           ));
-          s.setState(new AwaitCreateWorkingOrder());
         });
   }
 

@@ -28,7 +28,7 @@ market:
       localCloseTime: "22:00"
       nonTradingDays:
         - "2023-12-24"
-      barsInOpeningRange: 5
+      barsInOpeningRange: 1
       valueOfOnePip: 10
       marginRequirement: 0.05
     -
@@ -41,7 +41,7 @@ market:
       localCloseTime: "22:00"
       nonTradingDays:
         - "2023-12-24"
-      barsInOpeningRange: 5
+      barsInOpeningRange: 1
       valueOfOnePip: 10
       marginRequirement: 0.05
     -
@@ -92,6 +92,3 @@ spring:
   data:
     mongodb:
       database: bfg
-  devtools:
-    restart:
-      enabled: false # Good when working in fronted but now when changing backend

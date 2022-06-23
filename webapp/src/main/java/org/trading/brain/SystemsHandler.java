@@ -1,6 +1,8 @@
 package org.trading.brain;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.trading.event.AccountEquityEvent;
@@ -69,4 +71,7 @@ public class SystemsHandler {
     }
   }
 
+  public Collection<SystemData> getAll() {
+    return systemHandler.values();
+  }
 }
