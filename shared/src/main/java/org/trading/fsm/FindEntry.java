@@ -30,7 +30,7 @@ public class FindEntry implements SystemState {
   }
 
   private void maybeOpenOrder(String entryType, String direction, SystemData s) {
-//    Stream.of(s.getCurrentAtr().positionSize(s.getMarketInfo(), s.getCurrentAccountEquity()))
+    Stream.of(s.getCurrentAtr().positionSize(s.getMarketInfo(), s.getCurrentAccountEquity()));
     Stream.of(s.getMarketInfo().getLotSize())
         .filter(size -> {
           var nonZeroSize = size >= s.getMarketInfo().getLotSize();

@@ -15,7 +15,7 @@ public class OpeningRange {
   private Double midHigh;
   private Double midLow;
   @JsonIgnore
-  private SystemProperties systemProperties;
+  private SystemProperties systemProperties = new SystemProperties();
 
   public OpeningRange(String epic, Double midHigh, Double midLow) {
     this.epic = epic;

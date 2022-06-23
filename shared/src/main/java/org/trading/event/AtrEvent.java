@@ -14,7 +14,7 @@ public class AtrEvent {
   private String epic;
   private Double atr;
   @JsonIgnore
-  private SystemProperties systemProperties;
+  private SystemProperties systemProperties = new SystemProperties();
   public AtrEvent(String epic, Double atr) {
     this.epic = epic;
     this.atr = atr;

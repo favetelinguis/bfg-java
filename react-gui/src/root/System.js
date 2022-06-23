@@ -7,10 +7,9 @@ function System({market}) {
   const [midPrice, setMidPrice] = useState(market.currentMidPrice);
   useSubscription(`/topic/${epic}/midPrice`,
       (message) => {
-    const newMidPrice = getContent(message);
+    const newMidPrice = JSON.parse(message.body);
     setMidPrice(oldMidPrice => newMidPrice ? newMidPrice : oldMidPrice);
       });
-  console.log(midPrice)
   return (
       <div>{epic}: {midPrice.level}</div>
   )

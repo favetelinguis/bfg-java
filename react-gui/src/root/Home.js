@@ -8,7 +8,10 @@ function Home() {
   const [openMarkets, setOpenMarkets] = useState([]);
   // TODO only add market if its not already in the list
   useSubscription("/topic/system",
-      (message) => setOpenMarkets(getContent(message)));
+      (message) => {
+        console.log(message.body);
+    setOpenMarkets(JSON.parse(message.body))
+      });
   useSubscription("/topic/system/open",
       (message) => setOpenMarkets(oldMarkets => [...oldMarkets, getContent(message)]));
   useSubscription("/topic/system/close",
@@ -26,7 +29,7 @@ function Home() {
       setIsLoading(false);
     }
     getSystems();
-  }, []);
+  }, [stompClient]);
 
   if (isLoading) return <h1>Loading...</h1>;
 

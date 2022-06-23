@@ -11,7 +11,7 @@ public class MidPriceEvent {
   private Double level;
   private Double spread;
   @JsonIgnore
-  private SystemProperties systemProperties;
+  private SystemProperties systemProperties = new SystemProperties();
 
   public MidPriceEvent(String epic, Double level, Double spread) {
     this.epic = epic;
@@ -32,7 +32,7 @@ public class MidPriceEvent {
 
   public boolean isOver(OpeningRange openingRange, AtrEvent atr, Double bufferMultiplier) {
     if (openingRange != null && atr != null) {
-      return level > (openingRange.getMidHigh() + (bufferMultiplier*systemProperties.bufferMultipleOfAtr * atr.getAtr()));
+      return level > (openingRange.getMidHigh() + (bufferMultiplier * systemProperties.bufferMultipleOfAtr * atr.getAtr()));
     }
     return false;
   }

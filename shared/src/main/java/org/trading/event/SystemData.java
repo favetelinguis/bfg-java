@@ -20,7 +20,7 @@ import org.trading.model.OrderHandler;
 @Slf4j
 @Data
 public class SystemData {
-  private SystemProperties systemProperties;
+  private SystemProperties systemProperties = new SystemProperties();
   @JsonIgnore
   private SystemState state = new InitialState();
   private final String epic;

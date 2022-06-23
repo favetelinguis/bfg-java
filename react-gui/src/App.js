@@ -5,7 +5,7 @@ import {StompSessionProvider} from "react-stomp-hooks";
 
 function App() {
   return (
-      <StompSessionProvider url={"/bfgws"}>
+      <StompSessionProvider url={"http://localhost:8080/bfgws"}>
         <Home/>
       </StompSessionProvider>
   );
