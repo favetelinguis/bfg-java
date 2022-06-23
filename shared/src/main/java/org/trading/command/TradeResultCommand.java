@@ -6,6 +6,7 @@ import org.trading.model.Position;
 
 @Data
 public class TradeResultCommand implements Command {
+  private String epic;
   private Double size;
   private Double wantedEntryLevel;
   private Double actualEntryLevel;
@@ -14,13 +15,23 @@ public class TradeResultCommand implements Command {
   private Double wantedExitLevel;
   private Double actualExitLevel;
   private String direction;
-  private String entryLocationInOpeningRange;
-  private String epic;
+  private String entryType;
   private Integer version;
   private Double oneR;
 
   public static TradeResultCommand from(Position position) {
     var command = new TradeResultCommand();
+    command.setEpic(command.getEpic());
+    command.setSize(position.getOrder().getSize());
+    command.setWantedEntryLevel(position.getOrder().getWantedEntryPrice());
+    command.setActualEntryLevel(position.getEntryPrice());
+    command.setEntryTime(position.getUtcEntry());
+    command.setExitTime(position.getUtcExit());
+    command.setWantedExitLevel(position.getWantedStopLevel());
+    command.setActualExitLevel(position.getActualExitPrice());
+    command.setDirection(position.getOrder().getDirection());
+    command.setOneR(position.getOrder().getStopDistance());
+    command.setEntryType(position.getOrder().getEntryType());
     return command;
   }
 }

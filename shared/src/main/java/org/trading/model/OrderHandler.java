@@ -1,5 +1,6 @@
 package org.trading.model;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,9 +28,9 @@ public class OrderHandler {
 
   public void createPosition(Opu event) {
     if (event.getDirection().equals("BUY")) {
-      position = new Position(buy, event.getLevel());
+      position = new Position(buy, event.getLevel(), Instant.now());
     } else if (event.getDirection().equals("SELL")) {
-      position = new Position(sell, event.getLevel());
+      position = new Position(sell, event.getLevel(), Instant.now());
     } else {
       log.error("Invalid direction in OPU event {}", event);
     }

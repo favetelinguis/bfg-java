@@ -1,5 +1,6 @@
 package org.trading.fsm;
 
+import java.time.Instant;
 import lombok.Data;
 import org.trading.command.TradeResultCommand;
 import org.trading.command.UpdatePositionCommand;
@@ -25,6 +26,8 @@ public class AwaitPositionExitWithTrailingStop implements SystemState {
   public void handleOpuEvent(SystemData s, Opu event) {
     if (event.isPositionExit()) {
       s.setState(new FindEntry());
+      s.getOrderHandler().getPosition().setUtcExit(Instant.now());
+      s.getOrderHandler().getPosition().setActualExitPrice(event.getLevel());
       s.getCommandExecutor().accept(TradeResultCommand.from(s.getOrderHandler().getPosition()));
       s.getOrderHandler().resetOrders();
     }

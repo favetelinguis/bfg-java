@@ -1,6 +1,6 @@
 package org.trading.model;
 
-import lombok.AllArgsConstructor;
+import java.time.Instant;
 import lombok.Data;
 import org.trading.event.MidPriceEvent;
 
@@ -10,12 +10,16 @@ public class Position {
   private Double entryPrice;
   private Double entryStropDistance;
   private Double entryTargetDistance;
+  private Instant utcEntry;
+  private Instant utcExit;
+  private Double actualExitPrice;
 
-  public Position(Order order, Double entryPrice) {
+  public Position(Order order, Double entryPrice, Instant utcEntry) {
     this.order = order;
     this.entryPrice = entryPrice;
     this.entryStropDistance = order.getStopDistance();
     this.entryTargetDistance = order.getTargetDistance();
+    this.utcEntry = utcEntry;
   }
 
   // TODO price will be midPrice while entry price will be BID or ASK will that be an issue?
@@ -27,7 +31,7 @@ public class Position {
     }
   }
 
-  public Double getStopLevel() {
+  public Double getWantedStopLevel() {
     if (order.getDirection().equals("BUY")) {
       return entryPrice - entryStropDistance;
     } else {
