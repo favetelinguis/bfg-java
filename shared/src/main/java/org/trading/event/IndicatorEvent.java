@@ -41,12 +41,14 @@ public class IndicatorEvent {
    * If the difference is smaller than 10 points no signal is indicated
    */
   public boolean isBuyAllowed() {
-    var diff = indicatorState.getDiMinus() > indicatorState.getDiPlus();
-    return !(diff && (indicatorState.getAdx() >= 25));
+//    var diff = indicatorState.getDiMinus() > indicatorState.getDiPlus();
+//    return !(diff && (indicatorState.getAdx() >= 25));
+    return true;
   }
 
   public boolean isSellAllowed() {
-    var diff = indicatorState.getDiMinus() < indicatorState.getDiPlus();
-    return !(diff && (indicatorState.getAdx() >= 25));
+//    var diff = indicatorState.getDiMinus() < indicatorState.getDiPlus();
+//    return !(diff && (indicatorState.getAdx() >= 25));
+    return true;
   }
 }
