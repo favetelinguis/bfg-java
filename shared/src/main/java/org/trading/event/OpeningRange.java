@@ -1,7 +1,6 @@
 package org.trading.event;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.trading.SystemProperties;
 
@@ -27,8 +26,8 @@ public class OpeningRange {
     return midHigh - midLow;
   }
 
-  public boolean isLargeEnough(AtrEvent atr) {
-    return pipsInOpeningRange() >= (atr.getAtr() * systemProperties.minAtrMultipleForOpeningRange);
+  public boolean isLargeEnough(IndicatorEvent event) {
+    return pipsInOpeningRange() >= (event.getIndicatorState().getAtr() * systemProperties.minAtrMultipleForOpeningRange);
   }
   public Double getWantedEntryLevel(String entryType, MidPriceEvent midPrice) {
     if (entryType.equals("BUY_LOW")) {

@@ -10,10 +10,10 @@ public final class SystemProperties {
   public final double percentageRiskPerOrder = 0.005; // 0.5% of account each trade
   public final double maxTotalRiskPercentageForAccount = 6.;
   public final double oneRMultipleOfAtr = 3.;
-  public final double riskRewardRation = 1.;
+  public final double riskRewardRation = .5;
   public final double minAtrMultipleForOpeningRange = 3.;
   public final double bufferMultipleOfAtr = 1.;
-  public final int atrPeriod = 14;
+  public final int atrPeriod = 25;
   public final Long closeDelta = 5l;
 
   public ZonedDateTime getTodayMarketClose(MarketInfo marketInfo) {

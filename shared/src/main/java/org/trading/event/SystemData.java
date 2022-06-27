@@ -9,6 +9,7 @@ import org.trading.command.ClosePositionCommand;
 import org.trading.command.Command;
 import org.trading.fsm.InitialState;
 import org.trading.fsm.SystemState;
+import org.trading.model.IndicatorState;
 import org.trading.model.MarketInfo;
 import org.trading.model.OrderHandler;
 
@@ -30,22 +31,22 @@ public class SystemData {
   @JsonIgnore
   private final Consumer<Command> commandExecutor;
   private MidPriceEvent currentMidPrice;
-  private final AtrEvent currentAtr;
+  private final IndicatorEvent currentIndicatorEvent;
    // Used to initialize system with an account equity at creation, then it will be updated from outside.
   public AccountEquityEvent currentAccountEquity; // IS initalized when we create SystemData so never null
 
   public void setState(SystemState newState) {
-    log.info("{} -> {} For {}", state.getClass().getSimpleName(), newState.getClass().getSimpleName(), epic);
+//    log.info("{} -> {} For {}", state.getClass().getSimpleName(), newState.getClass().getSimpleName(), epic);
     this.state = newState;
   }
 
   public SystemData(String epic, MarketInfo marketInfo, OpeningRange openingRange,
-      Consumer<Command> commandExecutor, Double currentAtr) {
+      Consumer<Command> commandExecutor, IndicatorState indicatorState) {
     this.epic = epic;
     this.marketInfo = marketInfo;
     this.openingRange = openingRange;
     this.commandExecutor = commandExecutor;
-    this.currentAtr = new AtrEvent(epic, currentAtr);
+    this.currentIndicatorEvent = new IndicatorEvent(epic, indicatorState);
   }
 
   public void handleMidPriceEvent(MidPriceEvent event) {
@@ -57,8 +58,8 @@ public class SystemData {
     }
     state.handleMidPriceEvent(this, event);
   }
-  public void handleAtrEvent(AtrEvent event) {
-    currentAtr.setAtr(event.getAtr());
+  public void handleIndicatorEvent(IndicatorEvent event) {
+    currentIndicatorEvent.setIndicatorState(event.getIndicatorState());
     state.handleAtrEvent(this, event);
   }
 
@@ -75,4 +76,5 @@ public class SystemData {
       commandExecutor.accept(ClosePositionCommand.from(epic, marketInfo.getExpiry(), orderHandler.getPosition().getOrder().getSize()));
     }
   }
+
 }

@@ -1,7 +1,6 @@
 package org.trading.event;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.trading.SystemProperties;
 
@@ -19,34 +18,34 @@ public class MidPriceEvent {
     this.spread = spread;
   }
 
-  public boolean isOver(OpeningRange openingRange, AtrEvent atr) {
+  public boolean isOver(OpeningRange openingRange, IndicatorEvent atr) {
     return isOver(openingRange, atr, 1.);
   }
-  public boolean isUnder(OpeningRange openingRange, AtrEvent atr) {
+  public boolean isUnder(OpeningRange openingRange, IndicatorEvent atr) {
     return isUnder(openingRange, atr, 1.);
   }
   // Opening Range mut be large enough and price must be inside
-  public boolean isInside(OpeningRange openingRange, AtrEvent atr) {
+  public boolean isInside(OpeningRange openingRange, IndicatorEvent atr) {
     return isInside(openingRange, atr, 1.);
   }
 
-  public boolean isOver(OpeningRange openingRange, AtrEvent atr, Double bufferMultiplier) {
-    if (openingRange != null && atr != null) {
-      return level > (openingRange.getMidHigh() + (bufferMultiplier * systemProperties.bufferMultipleOfAtr * atr.getAtr()));
+  public boolean isOver(OpeningRange openingRange, IndicatorEvent event, Double bufferMultiplier) {
+    if (openingRange != null && event != null) {
+      return level > (openingRange.getMidHigh() + (bufferMultiplier * systemProperties.bufferMultipleOfAtr * event.getIndicatorState().getAtr()));
     }
     return false;
   }
-  public boolean isUnder(OpeningRange openingRange, AtrEvent atr, Double bufferMultiplier) {
-    if (openingRange != null && atr != null) {
-      return level < (openingRange.getMidLow() - (bufferMultiplier * systemProperties.bufferMultipleOfAtr * atr.getAtr()));
+  public boolean isUnder(OpeningRange openingRange, IndicatorEvent event, Double bufferMultiplier) {
+    if (openingRange != null && event != null) {
+      return level < (openingRange.getMidLow() - (bufferMultiplier * systemProperties.bufferMultipleOfAtr * event.getIndicatorState().getAtr()));
     }
     return false;
   }
   // Opening Range mut be large enough and price must be inside
-  public boolean isInside(OpeningRange openingRange, AtrEvent atr, Double bufferMultiplier) {
-    if (openingRange != null && atr != null) {
-      var priceIsInside = (level > (openingRange.getMidLow() + (bufferMultiplier*systemProperties.bufferMultipleOfAtr * atr.getAtr())))  && (level < (openingRange.getMidHigh() - (systemProperties.bufferMultipleOfAtr * atr.getAtr())));
-      return priceIsInside && openingRange.isLargeEnough(atr);
+  public boolean isInside(OpeningRange openingRange, IndicatorEvent event, Double bufferMultiplier) {
+    if (openingRange != null && event != null) {
+      var priceIsInside = (level > (openingRange.getMidLow() + (bufferMultiplier*systemProperties.bufferMultipleOfAtr * event.getIndicatorState().getAtr())))  && (level < (openingRange.getMidHigh() - (systemProperties.bufferMultipleOfAtr * event.getIndicatorState().getAtr())));
+      return priceIsInside && openingRange.isLargeEnough(event);
     }
     return false;
   }
@@ -62,7 +61,7 @@ public class MidPriceEvent {
    * @param currentAtr
    * @return
    */
-  public boolean isWellOutsideBuffer(OpeningRange openingRange, AtrEvent currentAtr) {
+  public boolean isWellOutsideBuffer(OpeningRange openingRange, IndicatorEvent currentAtr) {
     return isOver(openingRange, currentAtr, 1.5) || isInside(openingRange, currentAtr, 1.5) || isUnder(openingRange, currentAtr, 1.5);
   }
 }

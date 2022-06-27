@@ -1,9 +1,8 @@
 package org.trading.fsm;
 
 import lombok.Data;
-import org.trading.event.AtrEvent;
+import org.trading.event.IndicatorEvent;
 import org.trading.event.Confirms;
-import org.trading.event.MarketClose;
 import org.trading.event.MidPriceEvent;
 import org.trading.event.Opu;
 import org.trading.event.SystemData;
@@ -17,7 +16,7 @@ public class InitialState implements SystemState {
   }
 
   @Override
-  public void handleAtrEvent(SystemData s, AtrEvent event) {
+  public void handleAtrEvent(SystemData s, IndicatorEvent event) {
   }
 
   @Override

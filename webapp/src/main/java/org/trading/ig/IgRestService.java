@@ -39,7 +39,7 @@ public class IgRestService {
   public GetPricesV3Response getData(String epic, LocalDateTime start, LocalDateTime end) throws Exception {
     var formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     log.info("GET DATA BETWEEN {} and {}", start.format(formatter), end.format(formatter));
-    return restAPI.getPricesV3(authContext.getConversationContext(), null, null, null, epic, start.format(formatter), end.format(formatter), "MINUTE");
+    return restAPI.getPricesV3(authContext.getConversationContext(), null, null, "0", epic, start.format(formatter), end.format(formatter), "MINUTE");
   }
 
   public void createOrder(CreateWorkingOrderCommand command) {

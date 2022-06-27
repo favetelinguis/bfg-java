@@ -3,8 +3,7 @@ package org.trading.fsm;
 import java.time.Instant;
 import lombok.Data;
 import org.trading.command.TradeResultCommand;
-import org.trading.command.UpdatePositionCommand;
-import org.trading.event.AtrEvent;
+import org.trading.event.IndicatorEvent;
 import org.trading.event.Confirms;
 import org.trading.event.MidPriceEvent;
 import org.trading.event.Opu;
@@ -18,7 +17,7 @@ public class AwaitPositionExitWithTrailingStop implements SystemState {
   }
 
   @Override
-  public void handleAtrEvent(SystemData s, AtrEvent event) {
+  public void handleAtrEvent(SystemData s, IndicatorEvent event) {
 
   }
 

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.num.DecimalNum;
 import org.trading.SystemProperties;
-import org.trading.event.AtrEvent;
+import org.trading.event.IndicatorEvent;
 import org.trading.event.MarketClose;
 import org.trading.event.MidPriceEvent;
 import org.trading.event.OpeningRange;
@@ -70,9 +70,9 @@ class MarketDataComponent {
         }
         marketCache.init(cache);
         // Setup new system
-        publisher.publishEvent(new SystemData(marketOpen.getMarketInfo().getEpic(), marketOpen.getMarketInfo(), openingRange, publisher::publishEvent, cache.getCurrentAtr()));
+        publisher.publishEvent(new SystemData(marketOpen.getMarketInfo().getEpic(), marketOpen.getMarketInfo(), openingRange, publisher::publishEvent, cache.getCurrentIndicatorState()));
       } else {
-        throw new IllegalArgumentException("To few items to backfill, expected 14 got " + response.getPrices().size());
+        throw new IllegalArgumentException("To few items to backfill, expected 25 got " + response.getPrices().size());
       }
     } catch (Exception e) {
       log.error("Failed setting up system{}", marketOpen.getMarketInfo().getEpic(), e);
@@ -98,9 +98,10 @@ class MarketDataComponent {
           log.error("Failed to publish MidPrice", e);
         }
       }
-      var maybeAtr = marketCache.updateAndGetAtr(bar);
-      if (maybeAtr.isPresent()) {
-        publisher.publishEvent(new AtrEvent(bar.getEpic(), maybeAtr.get()));
+      var maybeIndicatorState = marketCache.updateAndGetIndicatorState(bar);
+      if (maybeIndicatorState.isPresent()) {
+        log.info("{} ATR: {} DI+: {} DI-: {} ADX: {}",bar.getEpic() , maybeIndicatorState.get().getAtr(), maybeIndicatorState.get().getDiPlus(), maybeIndicatorState.get().getDiMinus(), maybeIndicatorState.get().getAdx());
+        publisher.publishEvent(new IndicatorEvent(bar.getEpic(), maybeIndicatorState.get()));
       }
     }
   }

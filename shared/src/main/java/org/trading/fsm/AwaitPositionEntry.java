@@ -2,9 +2,8 @@ package org.trading.fsm;
 
 import lombok.Data;
 import org.trading.command.DeleteWorkingOrderCommand;
-import org.trading.event.AtrEvent;
+import org.trading.event.IndicatorEvent;
 import org.trading.event.Confirms;
-import org.trading.event.MarketClose;
 import org.trading.event.MidPriceEvent;
 import org.trading.event.Opu;
 import org.trading.event.SystemData;
@@ -18,8 +17,8 @@ public class AwaitPositionEntry implements SystemState {
   }
 
   @Override
-  public void handleAtrEvent(SystemData s, AtrEvent event) {
-    if (s.getCurrentMidPrice().isWellOutsideBuffer(s.getOpeningRange(), s.getCurrentAtr())) {
+  public void handleAtrEvent(SystemData s, IndicatorEvent event) {
+    if (s.getCurrentMidPrice().isWellOutsideBuffer(s.getOpeningRange(), s.getCurrentIndicatorEvent())) {
       for (var dealId : s.getOrderHandler().getDealIds()) {
         s.getCommandExecutor().accept(DeleteWorkingOrderCommand.from(s.getEpic(), dealId));
       }

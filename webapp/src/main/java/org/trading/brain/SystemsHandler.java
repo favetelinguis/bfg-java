@@ -2,11 +2,10 @@ package org.trading.brain;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.trading.event.AccountEquityEvent;
-import org.trading.event.AtrEvent;
+import org.trading.event.IndicatorEvent;
 import org.trading.event.Confirms;
 import org.trading.event.MarketClose;
 import org.trading.event.MidPriceEvent;
@@ -35,9 +34,9 @@ public class SystemsHandler {
     }
   }
 
-  public synchronized void updateAtr(AtrEvent event) {
+  public synchronized void updateAtr(IndicatorEvent event) {
     if (systemHandler.containsKey(event.getEpic())) {
-      systemHandler.get(event.getEpic()).handleAtrEvent(event);
+      systemHandler.get(event.getEpic()).handleIndicatorEvent(event);
     }
   }
 

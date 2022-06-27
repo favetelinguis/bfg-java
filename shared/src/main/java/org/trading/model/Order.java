@@ -1,7 +1,6 @@
 package org.trading.model;
 
 import lombok.Data;
-import org.trading.event.AtrEvent;
 
 @Data
 public class Order {

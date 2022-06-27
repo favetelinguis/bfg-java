@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.trading.event.AccountEquityEvent;
-import org.trading.event.AtrEvent;
+import org.trading.event.IndicatorEvent;
 import org.trading.event.Confirms;
 import org.trading.event.MarketClose;
 import org.trading.event.MidPriceEvent;
@@ -23,8 +23,8 @@ public class BrainComponent {
     systemsHandler.updateMidPrice(event);
   }
 
-  @EventListener(AtrEvent.class)
-  public void updateAtr(AtrEvent event) {
+  @EventListener(IndicatorEvent.class)
+  public void updateAtr(IndicatorEvent event) {
     systemsHandler.updateAtr(event);
   }
 
