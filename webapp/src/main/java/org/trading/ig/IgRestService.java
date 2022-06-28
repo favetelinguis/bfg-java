@@ -43,6 +43,14 @@ public class IgRestService {
   }
 
   public void createOrder(CreateWorkingOrderCommand command) {
+    var orderType = Type.LIMIT;
+    if (orderType.equals(Type.STOP)) { // SET stop to switch system to breakout
+      if (command.getDirection().equals("BUY")) {
+        command.setDirection("SELL");
+      } else {
+        command.setDirection("BUY");
+      }
+    }
     var request = new CreateOTCWorkingOrderV2Request();
     // Default
     request.setForceOpen(false);
@@ -97,6 +105,7 @@ public class IgRestService {
     request.setTimeInForce(org.trading.ig.rest.dto.positions.otc.closeOTCPositionV1.TimeInForce.EXECUTE_AND_ELIMINATE);
     request.setOrderType(OrderType.MARKET);
     request.setSize(BigDecimal.valueOf(command.getSize()));
+    request.setDirection(org.trading.ig.rest.dto.positions.otc.closeOTCPositionV1.Direction.valueOf(command.getDirection()));
     try {
       restAPI.closeOTCPositionV1(authContext.getConversationContext(), request);
     } catch (Exception e) {

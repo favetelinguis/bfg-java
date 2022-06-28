@@ -13,6 +13,7 @@ public class Position {
   private Instant utcEntry;
   private Instant utcExit;
   private Double actualExitPrice;
+  private int barsSinceEntry = 0;
 
   public Position(Order order, Double entryPrice, Instant utcEntry) {
     this.order = order;
@@ -48,5 +49,9 @@ public class Position {
 
   public Double getTrailingStopDistance() {
       return entryStropDistance;
+  }
+
+  public void incrementBarsSinceEntry() {
+    barsSinceEntry++;
   }
 }

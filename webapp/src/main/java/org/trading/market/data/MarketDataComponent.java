@@ -100,7 +100,7 @@ class MarketDataComponent {
       }
       var maybeIndicatorState = marketCache.updateAndGetIndicatorState(bar);
       if (maybeIndicatorState.isPresent()) {
-        log.info("{} ATR: {} DI+: {} DI-: {} ADX: {}",bar.getEpic() , maybeIndicatorState.get().getAtr(), maybeIndicatorState.get().getDiPlus(), maybeIndicatorState.get().getDiMinus(), maybeIndicatorState.get().getAdx());
+//        log.info("{} ATR: {} DI+: {} DI-: {} ADX: {}",bar.getEpic() , maybeIndicatorState.get().getAtr(), maybeIndicatorState.get().getDiPlus(), maybeIndicatorState.get().getDiMinus(), maybeIndicatorState.get().getAdx());
         publisher.publishEvent(new IndicatorEvent(bar.getEpic(), maybeIndicatorState.get()));
       }
     }

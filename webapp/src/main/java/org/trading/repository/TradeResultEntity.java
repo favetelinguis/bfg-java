@@ -12,8 +12,10 @@ public class TradeResultEntity {
   public String id;
   public LocalDateTime insertTime;
   public TradeResultCommand item;
+  public Double result;
   public TradeResultEntity(LocalDateTime insertTime, TradeResultCommand item) {
     this.insertTime = insertTime;
     this.item = item;
+    this.result = item.calculateRPnL();
   }
 }

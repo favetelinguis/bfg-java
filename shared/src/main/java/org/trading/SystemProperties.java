@@ -11,7 +11,7 @@ public final class SystemProperties {
   public final double maxTotalRiskPercentageForAccount = 6.;
   public final double oneRMultipleOfAtr = 3.;
   public final double riskRewardRation = .5;
-  public final double minAtrMultipleForOpeningRange = 3.;
+  public final double minAtrMultipleForOpeningRange = 2.;
   public final double bufferMultipleOfAtr = 1.;
   public final int atrPeriod = 25;
   public final Long closeDelta = 5l;

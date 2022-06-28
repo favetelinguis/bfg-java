@@ -2,6 +2,7 @@ package org.trading.fsm;
 
 import java.time.Instant;
 import lombok.Data;
+import org.trading.command.ClosePositionCommand;
 import org.trading.command.TradeResultCommand;
 import org.trading.command.UpdatePositionCommand;
 import org.trading.event.IndicatorEvent;
@@ -23,7 +24,10 @@ public class AwaitPositionExit implements SystemState {
 
   @Override
   public void handleAtrEvent(SystemData s, IndicatorEvent event) {
-
+    if (s.getOrderHandler().hasPosition() && s.getOrderHandler().getPosition().getBarsSinceEntry() > 10) {
+      s.getCommandExecutor().accept(
+          ClosePositionCommand.from(s.getEpic(), s.getMarketInfo().getExpiry(), s.getOrderHandler().getPosition().getOrder().getSize(), s.getOrderHandler().getPosition().getOrder().getDirection()));
+    }
   }
 
   @Override

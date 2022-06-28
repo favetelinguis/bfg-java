@@ -18,6 +18,7 @@ public class TradeResultCommand implements Command {
   private String entryType;
   private Integer version;
   private Double oneR;
+  private Integer barsInTrade;
 
   public static TradeResultCommand from(Position position) {
     var command = new TradeResultCommand();
@@ -32,6 +33,17 @@ public class TradeResultCommand implements Command {
     command.setDirection(position.getOrder().getDirection());
     command.setOneR(position.getOrder().getStopDistance());
     command.setEntryType(position.getOrder().getEntryType());
+    command.setBarsInTrade(position.getBarsSinceEntry());
     return command;
+  }
+
+  public Double calculateRPnL() {
+    Double result;
+    if (direction.equals("BUY")) {
+      result = actualExitLevel - actualEntryLevel;
+    } else {
+      result = actualEntryLevel - actualExitLevel;
+    }
+    return result / oneR;
   }
 }

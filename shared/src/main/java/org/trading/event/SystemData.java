@@ -36,7 +36,7 @@ public class SystemData {
   public AccountEquityEvent currentAccountEquity; // IS initalized when we create SystemData so never null
 
   public void setState(SystemState newState) {
-//    log.info("{} -> {} For {}", state.getClass().getSimpleName(), newState.getClass().getSimpleName(), epic);
+    log.info("{} -> {} For {}", state.getClass().getSimpleName(), newState.getClass().getSimpleName(), epic);
     this.state = newState;
   }
 
@@ -59,6 +59,9 @@ public class SystemData {
     state.handleMidPriceEvent(this, event);
   }
   public void handleIndicatorEvent(IndicatorEvent event) {
+    if (orderHandler.hasPosition()) {
+      orderHandler.getPosition().incrementBarsSinceEntry();
+    }
     currentIndicatorEvent.setIndicatorState(event.getIndicatorState());
     state.handleAtrEvent(this, event);
   }
@@ -73,7 +76,7 @@ public class SystemData {
 
   public void closeMarket() {
     if (orderHandler.hasPosition()) {
-      commandExecutor.accept(ClosePositionCommand.from(epic, marketInfo.getExpiry(), orderHandler.getPosition().getOrder().getSize()));
+      commandExecutor.accept(ClosePositionCommand.from(epic, marketInfo.getExpiry(), orderHandler.getPosition().getOrder().getSize(), orderHandler.getPosition().getOrder().getDirection()));
     }
   }
 
