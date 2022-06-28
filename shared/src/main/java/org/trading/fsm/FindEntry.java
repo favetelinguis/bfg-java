@@ -75,7 +75,7 @@ public class FindEntry implements SystemState {
               .getWantedEntryLevel(entryType, s.getCurrentMidPrice());
           var targetDistance = s.getCurrentIndicatorEvent().targetDistance();
           var stopDistance= s.getCurrentIndicatorEvent().stopDistance();
-          var newOrder = new Order(direction, wantedEntryLevel, size, targetDistance, stopDistance, entryType);
+          var newOrder = new Order(s.getEpic(), direction, wantedEntryLevel, size, targetDistance, stopDistance, entryType);
           s.getOrderHandler().setOrder(newOrder);
           s.getCommandExecutor().accept(CreateWorkingOrderCommand.from(
               newOrder.getDirection(),

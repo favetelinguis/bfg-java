@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class Order {
+  private final String epic;
   private final String direction;
   private final Double wantedEntryPrice;
   private Double size;
@@ -12,7 +13,8 @@ public class Order {
   private String entryType;
   private String dealId;
 
-  public Order(String direction, Double wantedEntryLevel, Double size, Double targetDistance, Double stopDistance, String entryType) {
+  public Order(String epic, String direction, Double wantedEntryLevel, Double size, Double targetDistance, Double stopDistance, String entryType) {
+    this.epic = epic;
     this.direction = direction;
     this.wantedEntryPrice = wantedEntryLevel;
     this.size = size;

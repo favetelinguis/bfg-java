@@ -22,7 +22,7 @@ public class TradeResultCommand implements Command {
 
   public static TradeResultCommand from(Position position) {
     var command = new TradeResultCommand();
-    command.setEpic(command.getEpic());
+    command.setEpic(position.getOrder().getEpic());
     command.setSize(position.getOrder().getSize());
     command.setWantedEntryLevel(position.getOrder().getWantedEntryPrice());
     command.setActualEntryLevel(position.getEntryPrice());
