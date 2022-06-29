@@ -19,6 +19,7 @@ public class TradeResultCommand implements Command {
   private Integer version;
   private Double oneR;
   private Integer barsInTrade;
+  private Double mae;
 
   public static TradeResultCommand from(Position position) {
     var command = new TradeResultCommand();
@@ -34,6 +35,7 @@ public class TradeResultCommand implements Command {
     command.setOneR(position.getOrder().getStopDistance());
     command.setEntryType(position.getOrder().getEntryType());
     command.setBarsInTrade(position.getBarsSinceEntry());
+    command.setMae(position.getMae());
     return command;
   }
 

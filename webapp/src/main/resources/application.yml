@@ -70,19 +70,19 @@ market:
       barsInOpeningRange: 1
       valueOfOnePip: 10
       marginRequirement: 0.05
-    -
-      epic: IX.D.OMX.IFM.IP
-      expiry: "-"
-      currency: SEK
-      minStop: 1.5
-      lotSize: 1
-      localOpenTime: "09:00"
-      localCloseTime: "17:30"
-      nonTradingDays:
-        - "2023-12-24"
-      barsInOpeningRange: 1
-      valueOfOnePip: 20
-      marginRequirement: 0.1
+#    -
+#      epic: IX.D.OMX.IFM.IP
+#      expiry: "-"
+#      currency: SEK
+#      minStop: 1.5
+#      lotSize: 1
+#      localOpenTime: "09:00"
+#      localCloseTime: "17:30"
+#      nonTradingDays:
+#        - "2023-12-24"
+#      barsInOpeningRange: 1
+#      valueOfOnePip: 20
+#      marginRequirement: 0.1
 
 logging:
   level:

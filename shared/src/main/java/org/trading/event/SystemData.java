@@ -56,6 +56,9 @@ public class SystemData {
       currentMidPrice.setLevel(event.getLevel());
       currentMidPrice.setSpread(event.getSpread());
     }
+    if (orderHandler.hasPosition()) {
+      orderHandler.getPosition().updateMae(event);
+    }
     state.handleMidPriceEvent(this, event);
   }
   public void handleIndicatorEvent(IndicatorEvent event) {

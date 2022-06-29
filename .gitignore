@@ -25,3 +25,4 @@ hs_err_pid*
 .idea
 **/target
 webapp/src/main/resources/static
+/.~lock.porfolio_calculations.ods#
